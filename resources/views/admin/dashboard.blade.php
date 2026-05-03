@@ -849,6 +849,7 @@
             <div id="tab-indicator" class="tab-indicator"></div>
             <div class="tab active" onclick="showSection(this, 'professionals')">Professionals</div>
             <div class="tab" onclick="showSection(this, 'settings')">Settings</div>
+            <div class="tab" onclick="showSection(this, 'audit-logs')">Audit Logs</div>
             <form action="{{ route('logout') }}" method="POST" style="margin: 0; margin-left: auto;">
                 @csrf
                 <button type="submit" class="tab" style="color: #ef4444; cursor: pointer;">Logout</button>
@@ -1296,6 +1297,47 @@
 
                 <button type="submit" class="save-button">Save All Settings</button>
             </form>
+        </div>
+
+        <!-- Audit Logs Section -->
+        <div id="audit-logs" class="content-section">
+            <div class="professionals-panel">
+                <div style="margin-bottom: 20px;">
+                    <h3 style="font-size: 18px; font-weight: 700; color: #1f2937;">System Audit Logs</h3>
+                    <p style="color: #6b7280; font-size: 13px;">Immutable record of administrative actions.</p>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Log ID</th>
+                                <th>Administrator</th>
+                                <th>Action Taken</th>
+                                <th>Target Entity</th>
+                                <th>IP Address</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if(isset($auditLogs) && count($auditLogs) > 0)
+                                @foreach($auditLogs as $log)
+                                    <tr>
+                                        <td style="color: #6b7280;">#{{ $log['id'] }}</td>
+                                        <td style="font-weight: 600;">{{ $log['admin_name'] }}</td>
+                                        <td><span class="status-badge" style="background: #E5FFF6; color: #527267;">{{ $log['action'] }}</span></td>
+                                        <td style="font-family: monospace; font-size: 12px; color: #4b5563;">{{ $log['target'] }}</td>
+                                        <td style="color: #9ca3af; font-size: 12px;">{{ $log['ip'] }}</td>
+                                    </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="5" style="text-align:center; color:#6b7280; padding:24px;">No audit logs recorded yet.</td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- Add Admin Modal -->
