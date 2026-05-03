@@ -99,6 +99,28 @@ class AdminController extends Controller
     }
 
     /**
+     * Count patients using the strongest available source.
+     *
+     * Some legacy imports only populate the clinician-patient link table, so we
+     * fall back to that data instead of showing zero when child profiles are absent.
+     */
+    private function countPatients(): int
+    {
+        $profileCount = (int) ChildProfile::count();
+
+        if (!Schema::hasTable('clinician_patient_link')) {
+            return $profileCount;
+        }
+
+        $linkedCount = (int) DB::table('clinician_patient_link')
+            ->whereRaw('COALESCE(is_active, 1) = 1')
+            ->distinct()
+            ->count('child_id');
+
+        return max($profileCount, $linkedCount);
+    }
+
+    /**
      * Show the admin dashboard
      */
     public function dashboard(Request $request)
@@ -132,7 +154,7 @@ class AdminController extends Controller
         $stats = [
             'total_professionals' => (clone $doctorQuery)->count(),
             'active_professionals' => (clone $doctorQuery)->whereRaw('LOWER(status) = ?', ['active'])->count(),
-            'total_patients' => ChildProfile::count(),
+            'total_patients' => $this->countPatients(),
             'suspended_professionals' => (clone $doctorQuery)->whereRaw('LOWER(status) = ?', ['suspended'])->count(),
         ];
 
@@ -582,7 +604,7 @@ class AdminController extends Controller
         return response()->json([
             'total_professionals' => $professionals->count(),
             'active_professionals' => $professionals->filter(fn($p) => strtolower($p->status ?? '') === 'active')->count(),
-            'total_patients' => ChildProfile::count(),
+            'total_patients' => $this->countPatients(),
             'suspended' => $professionals->filter(fn($p) => strtolower($p->status ?? '') === 'suspended')->count(),
         ]);
     }

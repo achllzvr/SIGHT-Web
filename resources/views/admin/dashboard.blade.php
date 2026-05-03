@@ -1310,23 +1310,23 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label>First Name</label>
-                                <input type="text" name="first_name" placeholder="John" value="{{ old('first_name') }}" required>
+                                <input type="text" name="first_name" placeholder="John" value="{{ old('first_name') }}" x-model="newAdmin.first_name" required>
                             </div>
                             <div class="form-group">
                                 <label>Last Name</label>
-                                <input type="text" name="last_name" placeholder="Doe" value="{{ old('last_name') }}" required>
+                                <input type="text" name="last_name" placeholder="Doe" value="{{ old('last_name') }}" x-model="newAdmin.last_name" required>
                             </div>
                             <div class="form-group" style="grid-column: span 2;">
                                 <label>Email Address</label>
-                                <input type="email" name="email" placeholder="admin@example.com" value="{{ old('email') }}" required>
+                                <input type="email" name="email" placeholder="admin@example.com" value="{{ old('email') }}" x-model="newAdmin.email" required>
                             </div>
                             <div class="form-group">
                                 <label>Password</label>
-                                <input type="password" name="password" placeholder="••••••••" required>
+                                <input type="password" name="password" placeholder="••••••••" x-model="newAdmin.password" required>
                             </div>
                             <div class="form-group">
                                 <label>Confirm Password</label>
-                                <input type="password" name="password_confirmation" placeholder="••••••••" required>
+                                <input type="password" name="password_confirmation" placeholder="••••••••" x-model="newAdmin.password_confirmation" required>
                             </div>
                         </div>
                     </div>
