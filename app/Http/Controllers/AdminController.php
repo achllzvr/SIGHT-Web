@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\ChildProfile;
 use App\Models\DoctorProfile;
+use App\Models\AuditLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -301,6 +302,8 @@ class AdminController extends Controller
 
         $professional->load('doctorProfile');
 
+        $this->logAdminAction('Created Professional Account', 'User Email: ' . $professional->email);
+
         return response()->json([
             'success' => true,
             'message' => 'Professional added successfully.',
@@ -382,6 +385,8 @@ class AdminController extends Controller
 
         $professional->load('doctorProfile');
 
+        $this->logAdminAction('Updated Professional Account', 'User ID: ' . $professional->user_id);
+
         return response()->json([
             'success' => true,
             'message' => 'Professional updated successfully',
@@ -427,6 +432,8 @@ class AdminController extends Controller
 
             $professional->delete();
         });
+
+        $this->logAdminAction('Updated Professional Account', 'User ID: ' . $professional->user_id);
 
         return response()->json([
             'success' => true,
@@ -538,6 +545,8 @@ class AdminController extends Controller
                 ],
             ];
 
+            $this->logAdminAction('Created Admin Account', 'User Email: ' . $createdAdmin->email);
+
             if ($wantsJson) {
                 return response()->json($payload);
             }
@@ -588,6 +597,8 @@ class AdminController extends Controller
             $admin->delete();
         });
 
+        $this->logAdminAction('Deleted Admin Account', 'User ID: ' . $admin->user_id);
+
         return response()->json([
             'success' => true,
             'message' => 'Admin removed successfully',
@@ -625,6 +636,9 @@ class AdminController extends Controller
 
         $user->status = (strtolower($user->status ?? 'active') === 'active') ? 'inactive' : 'active';
         $user->save();
+        
+        $actionStr = $user->status === 'active' ? 'Enabled Account' : 'Disabled Account';
+        $this->logAdminAction($actionStr, 'User ID: ' . $user->user_id);
 
         return response()->json([
             'success' => true,
@@ -654,6 +668,9 @@ class AdminController extends Controller
             $doctorProfile->is_validated = $user->email_verified_at ? 1 : 0;
             $doctorProfile->save();
         }
+
+        $actionStr = $user->email_verified_at ? 'Verified Clinician' : 'Revoked Clinician Verification';
+        $this->logAdminAction($actionStr, 'User ID: ' . $user->user_id);
 
         return response()->json([
             'success' => true,
@@ -709,5 +726,22 @@ class AdminController extends Controller
         $firstName = implode(' ', $parts);
 
         return [$firstName, $lastName];
+    }
+
+    /**
+     * Helper to log administrative actions to the audit_logs table
+     */
+    private function logAdminAction(string $action, string $targetEntity)
+    {
+        $adminProfile = \App\Models\AdminProfile::where('user_id', Auth::id())->first();
+        
+        if ($adminProfile) {
+            \App\Models\AuditLog::create([
+                'admin_id' => $adminProfile->admin_id,
+                'action_taken' => $action,
+                'target_entity' => $targetEntity,
+                'ip_address' => request()->ip(),
+            ]);
+        }
     }
 }

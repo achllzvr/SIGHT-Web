@@ -201,4 +201,26 @@ class MobileApiController extends Controller
 
         return response()->json($result['body'], $result['http_code']);
     }
+
+    /**
+     * GET /api/mobile/child/{child_id}/prescriptions
+     * Fetches doctor recommendations to convert into mobile tasks
+     */
+    public function getPrescriptions($child_id)
+    {
+        // 1. Find active clinician links for this child
+        $activeLinks = \App\Models\ClinicianPatientLink::where('child_id', $child_id)
+            ->where('is_active', true)
+            ->pluck('link_id');
+
+        // 2. Fetch the prescriptions
+        $prescriptions = \App\Models\Prescription::whereIn('link_id', $activeLinks)
+            ->orderBy('date_issued', 'desc')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $prescriptions
+        ], 200);
+    }
 }

@@ -60,6 +60,7 @@ Route::prefix('mobile')->group(function () {
 
     // Guardian Dashboard (Mobile)
     Route::get('/guardian/children', [\App\Http\Controllers\Api\GuardianApiController::class, 'getChildrenMobile']);
+    Route::get('/child/{child_id}/prescriptions', [MobileApiController::class, 'getPrescriptions']);
 
     // Doctor Search & Connection (Mobile)
     Route::get('/doctors', [\App\Http\Controllers\Api\GuardianApiController::class, 'getAvailableDoctors']);
