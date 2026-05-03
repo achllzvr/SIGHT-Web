@@ -177,7 +177,21 @@ class AdminController extends Controller
             ];
         })->toArray();
 
-        return view('admin.dashboard', compact('admin', 'professionals', 'stats', 'otherAdmins', 'pagination'));
+        $auditLogs = \App\Models\AuditLog::with('admin.user')
+            ->orderBy('log_id', 'desc')
+            ->limit(50)
+            ->get()
+            ->map(function ($log) {
+                return [
+                    'id' => $log->log_id,
+                    'admin_name' => $log->admin->user->first_name . ' ' . $log->admin->user->last_name,
+                    'action' => $log->action_taken,
+                    'target' => $log->target_entity,
+                    'ip' => $log->ip_address,
+                ];
+            })->toArray();
+
+        return view('admin.dashboard', compact('admin', 'professionals', 'stats', 'otherAdmins', 'pagination', 'auditLogs'));
     }
 
     /**
