@@ -79,6 +79,14 @@ class AdminController extends Controller
     {
         $profile = $professional->doctorProfile;
 
+        $patientCount = 0;
+        if ($profile) {
+            $patientCount = DB::table('clinician_patient_link')
+                ->where('doctor_id', $profile->doctor_id)
+                ->where('is_active', 1)
+                ->count();
+        }
+
         return [
             'id' => $professional->user_id,
             'name' => $this->displayName($professional),
@@ -93,7 +101,7 @@ class AdminController extends Controller
             'is_verified' => !is_null($professional->email_verified_at),
             'status' => strtolower($professional->status ?? 'active'),
             'created_at' => $professional->created_at ? $professional->created_at->format('M d, Y') : null,
-            'patients' => 0,
+            'patients' => $patientCount,
             'last_active' => 'Never',
             'joined_date' => $professional->created_at ? $professional->created_at->format('M d, Y') : 'N/A',
         ];
@@ -302,6 +310,14 @@ class AdminController extends Controller
 
         $professional->load('doctorProfile');
 
+        $patientCount = 0;
+        if (isset($professional->doctorProfile)) {
+            $patientCount = DB::table('clinician_patient_link')
+                ->where('doctor_id', $professional->doctorProfile->doctor_id)
+                ->where('is_active', 1)
+                ->count();
+        }
+
         $this->logAdminAction('Created Professional Account', 'User Email: ' . $professional->email);
 
         return response()->json([
@@ -321,7 +337,7 @@ class AdminController extends Controller
                 'is_verified' => false,
                 'location' => $professional->doctorProfile->location ?? $validated['location'],
                 'status' => strtolower($professional->status ?? 'pending'),
-                'patients' => 0,
+                'patients' => $patientCount,
                 'last_active' => 'Just now',
                 'joined_date' => $professional->created_at ? $professional->created_at->format('M d, Y') : now()->format('M d, Y'),
                 'created_at' => $professional->created_at ? $professional->created_at->format('M d, Y') : now()->format('M d, Y'),
@@ -385,6 +401,14 @@ class AdminController extends Controller
 
         $professional->load('doctorProfile');
 
+        $patientCount = 0;
+        if (isset($professional->doctorProfile)) {
+            $patientCount = DB::table('clinician_patient_link')
+                ->where('doctor_id', $professional->doctorProfile->doctor_id)
+                ->where('is_active', 1)
+                ->count();
+        }
+
         $this->logAdminAction('Updated Professional Account', 'User ID: ' . $professional->user_id);
 
         return response()->json([
@@ -403,7 +427,7 @@ class AdminController extends Controller
                 'location' => $professional->doctorProfile->location ?? $validated['location'],
                 'status' => strtolower($professional->status ?? $validated['status']),
                 'is_verified' => !is_null($professional->email_verified_at),
-                'patients' => 0,
+                'patients' => $patientCount,
                 'last_active' => 'Never',
                 'joined_date' => $professional->created_at ? $professional->created_at->format('M d, Y') : 'N/A',
             ],
