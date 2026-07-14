@@ -30,14 +30,8 @@ class DoctorProfile extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function patients()
+    public function accessLogs()
     {
-        return $this->belongsToMany(ChildProfile::class, 'clinician_patient_link', 'doctor_id', 'child_id')
-            ->withPivot('link_id', 'linkage_key', 'is_active', 'linkage_date');
-    }
-
-    public function patientLinks()
-    {
-        return $this->hasMany(ClinicianPatientLink::class, 'doctor_id');
+        return $this->hasMany(PatientAccessLog::class, 'clinician_id', 'user_id');
     }
 }

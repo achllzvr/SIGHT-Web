@@ -37,11 +37,6 @@ class ChildProfile extends Model
         return $this->belongsToMany(GuardianProfile::class, 'guardian_child_link', 'child_id', 'guardian_id');
     }
 
-    public function doctors()
-    {
-        return $this->belongsToMany(DoctorProfile::class, 'clinician_patient_link', 'child_id', 'doctor_id');
-    }
-
     public function eyeHealthMetrics()
     {
         return $this->hasMany(EyeHealthMetrics::class, 'child_id');
@@ -67,8 +62,13 @@ class ChildProfile extends Model
         return $this->hasOne(VirtualPet::class, 'child_id');
     }
 
-    public function doctorLinks()
+    public function temporaryAccessTokens()
     {
-        return $this->hasMany(ClinicianPatientLink::class, 'child_id');
+        return $this->hasMany(TemporaryAccessToken::class, 'child_id', 'child_id');
+    }
+
+    public function accessLogs()
+    {
+        return $this->hasMany(PatientAccessLog::class, 'child_id', 'child_id');
     }
 }

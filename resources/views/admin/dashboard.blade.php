@@ -1249,49 +1249,9 @@
 
                 <div class="form-section">
                     <div>
-                        <h3>Other Administrators</h3>
-                        <p class="section-subtitle">Manage admin accounts</p>
-                        <div class="add-admin-section">
-                            <button type="button" class="add-admin-btn" onclick="openAddAdminModal(event)">+ Add Admin</button>
-                        </div>
-                        <div class="table-container" style="margin-top: 14px;">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Administrator</th>
-                                        <th>Email</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <template x-for="other in otherAdmins" :key="other.id">
-                                        <tr>
-                                            <td>
-                                                <div class="professional-name" x-text="other.name"></div>
-                                            </td>
-                                            <td>
-                                                <div class="professional-email" x-text="other.email"></div>
-                                            </td>
-                                            <td>
-                                                <span class="status-badge" :class="'status-' + normalizeStatus(other.status)" x-text="capitalizeStatus(normalizeStatus(other.status))"></span>
-                                            </td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button type="button" class="action-btn" :class="normalizeStatus(other.status) === 'active' ? 'delete' : 'edit'" @click.prevent="toggleStatus(other, 'admin')" x-text="normalizeStatus(other.status) === 'active' ? 'Disable' : 'Enable'"></button>
-                                                    <button type="button" class="action-btn delete" @click.prevent="removeAdmin(other.id)">Delete</button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </template>
-                                    <template x-if="otherAdmins.length === 0">
-                                        <tr>
-                                            <td colspan="4" style="text-align:center; color:#6b7280; padding:20px;">No other administrators</td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
+                        <h3>Administrator Access</h3>
+                        <p class="section-subtitle">SIGHT enforces a single super-admin account. Secondary admin creation has been disabled.</p>
+                        <p style="margin-top: 12px; color:#6b7280;">Signed in as {{ $admin->display_name }} ({{ $admin->email }}).</p>
                     </div>
                 </div>
 
@@ -1340,48 +1300,7 @@
             </div>
         </div>
 
-        <!-- Add Admin Modal -->
-        <div id="add-admin-modal" class="modal-overlay">
-            <div class="modal">
-                <div class="modal-header">
-                    <h3>Add New Administrator</h3>
-                </div>
-                <form method="POST" action="{{ url('/admin/admin/add') }}" @submit.prevent="submitAddAdmin()">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>First Name</label>
-                                <input type="text" name="first_name" placeholder="John" value="{{ old('first_name') }}" x-model="newAdmin.first_name" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Last Name</label>
-                                <input type="text" name="last_name" placeholder="Doe" value="{{ old('last_name') }}" x-model="newAdmin.last_name" required>
-                            </div>
-                            <div class="form-group" style="grid-column: span 2;">
-                                <label>Email Address</label>
-                                <input type="email" name="email" placeholder="admin@example.com" value="{{ old('email') }}" x-model="newAdmin.email" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Password</label>
-                                <input type="password" name="password" placeholder="••••••••" x-model="newAdmin.password" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Confirm Password</label>
-                                <input type="password" name="password_confirmation" placeholder="••••••••" x-model="newAdmin.password_confirmation" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn-save" :disabled="isSubmittingAdmin" x-text="isSubmittingAdmin ? 'Creating...' : 'Create Admin'"></button>
-                        <button type="button" class="btn-secondary" onclick="closeAddAdminModal()">Cancel</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <script>
+<script>
         document.addEventListener('alpine:init', () => {
             document.querySelectorAll('.server-row').forEach((row) => {
                 row.style.display = 'none';
@@ -1410,38 +1329,10 @@
         window.addEventListener('load', () => moveIndicator(document.querySelector('.tab.active')));
         window.addEventListener('resize', () => moveIndicator(document.querySelector('.tab.active')));
 
-        function openAddAdminModal(event) {
-            if (event) event.preventDefault();
-            const modal = document.getElementById('add-admin-modal');
-            if (modal) {
-                modal.classList.add('active');
-            }
-        }
-
-        function closeAddAdminModal() {
-            const modal = document.getElementById('add-admin-modal');
-            if (modal) {
-                modal.classList.remove('active');
-            }
-        }
-
-        document.addEventListener('click', (event) => {
-            const modal = document.getElementById('add-admin-modal');
-            if (!modal || !modal.classList.contains('active')) return;
-
-            if (event.target === modal) {
-                closeAddAdminModal();
-            }
-        });
-
-        @if($errors->has('first_name') || $errors->has('last_name') || $errors->has('email') || $errors->has('password'))
-            window.addEventListener('load', () => openAddAdminModal());
-        @endif
-
         function professionalsManager() {
             return {
                 professionals: @json($professionals),
-                otherAdmins: @json($otherAdmins),
+                otherAdmins: [],
                 stats: @json($stats),
                 pagination: @json($pagination),
                 csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -1608,87 +1499,11 @@
                 },
 
                 async submitAddAdmin() {
-                    if (this.isSubmittingAdmin) return;
-
-                    if(!this.newAdmin.first_name || !this.newAdmin.last_name || !this.newAdmin.email || !this.newAdmin.password) {
-                        this.notify('error', 'Please fill in all fields.');
-                        return;
-                    }
-                    if (this.newAdmin.password !== this.newAdmin.password_confirmation) {
-                        this.notify('error', 'Password confirmation does not match.');
-                        return;
-                    }
-
-                    const payload = {
-                        first_name: this.newAdmin.first_name,
-                        last_name: this.newAdmin.last_name,
-                        email: this.newAdmin.email,
-                        password: this.newAdmin.password,
-                        password_confirmation: this.newAdmin.password_confirmation
-                    };
-
-                    try {
-                        this.isSubmittingAdmin = true;
-
-                        const response = await fetch('/admin/admin/add', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': this.csrfToken
-                            },
-                            body: JSON.stringify(payload)
-                        });
-                        const contentType = response.headers.get('content-type') || '';
-                        const data = contentType.includes('application/json')
-                            ? await response.json()
-                            : { success: false, message: await response.text() };
-
-                        if (response.ok && data.success) {
-                            this.otherAdmins.push({
-                                ...data.admin,
-                                status: this.normalizeStatus(data.admin.status)
-                            });
-                            this.showAddAdminModal = false;
-                            this.newAdmin = { first_name: '', last_name: '', email: '', password: '', password_confirmation: '' };
-                            this.notify('success', 'Admin added successfully.');
-                        } else {
-                            let msg = data.message || `Error adding admin (HTTP ${response.status})`;
-                            if (data.errors) {
-                                msg = Object.values(data.errors).flat().join('\n');
-                            }
-                            this.notify('error', msg);
-                        }
-                    } catch (e) {
-                        this.notify('error', e.message || 'Failed to add admin.');
-                    } finally {
-                        this.isSubmittingAdmin = false;
-                    }
+                    this.notify('error', 'Secondary admin creation is disabled.');
                 },
 
                 async removeAdmin(id) {
-                    if (!confirm('Are you sure you want to remove this administrator?')) return;
-
-                    try {
-                        const response = await fetch(`/admin/admin/${id}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': this.csrfToken
-                            }
-                        });
-
-                        const data = await response.json();
-                        if (data.success) {
-                            this.otherAdmins = this.otherAdmins.filter(a => a.id !== id);
-                            this.notify('success', 'Admin removed successfully.');
-                        } else {
-                            this.notify('error', data.message || 'Error removing admin');
-                        }
-                    } catch (error) {
-                        console.error('Delete Error:', error);
-                        this.notify('error', 'Failed to remove admin.');
-                    }
+                    this.notify('error', 'Secondary admin removal is disabled.');
                 },
 
                 resetNewProfessional() {

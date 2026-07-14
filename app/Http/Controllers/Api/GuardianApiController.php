@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\LegalDocumentService;
 use App\Services\RuleEngineService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,8 +12,10 @@ use Illuminate\Support\Facades\Hash;
 
 class GuardianApiController extends Controller
 {
-    public function __construct(private readonly RuleEngineService $ruleEngineService)
-    {
+    public function __construct(
+        private readonly RuleEngineService $ruleEngineService,
+        private readonly LegalDocumentService $legalDocumentService,
+    ) {
     }
 
     /**
@@ -25,6 +28,8 @@ class GuardianApiController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:user,email',
             'password' => 'required|string|min:6',
+            'document_ids' => 'required|array|min:1',
+            'document_ids.*' => 'integer',
         ]);
 
         $payload = [
@@ -36,6 +41,14 @@ class GuardianApiController extends Controller
         ];
 
         $result = $this->ruleEngineService->registerGuardian($payload);
+
+        if (($result['body']['status'] ?? '') === 'success') {
+            $userId = (int) ($result['body']['data']['user']['id'] ?? 0);
+            if ($userId > 0) {
+                $this->legalDocumentService->accept($userId, $validated['document_ids'], $request->ip());
+            }
+        }
+
         return response()->json($result['body'], $result['http_code']);
     }
 
@@ -73,26 +86,6 @@ class GuardianApiController extends Controller
         ]);
 
         $result = $this->ruleEngineService->updateChildLimits((int) $child_id, $validated);
-
-        return response()->json($result['body'], $result['http_code']);
-    }
-
-    /**
-     * POST /api/web/guardian/doctor/link
-     * Sends a connection request to a specific clinician
-     */
-    public function linkDoctor(Request $request)
-    {
-        $request->validate([
-            'doctor_id' => 'required|exists:doctor_profile,doctor_id',
-            'child_id' => 'required|exists:child_profile,child_id',
-        ]);
-
-        $result = $this->ruleEngineService->linkDoctor(
-            (int) Auth::id(),
-            (int) $request->input('doctor_id'),
-            (int) $request->input('child_id')
-        );
 
         return response()->json($result['body'], $result['http_code']);
     }
@@ -214,64 +207,5 @@ class GuardianApiController extends Controller
             'status' => 'success',
             'data' => $children
         ], 200);
-    }
-
-    public function getAvailableDoctors()
-    {
-        $doctors = \Illuminate\Support\Facades\DB::table('doctor_profile')
-            ->join('user', 'doctor_profile.user_id', '=', 'user.user_id')
-            ->select(
-                'doctor_profile.doctor_id', 'user.first_name', 'user.last_name', 
-                'user.email', 'doctor_profile.specialty', 'doctor_profile.clinic', 'doctor_profile.location'
-            )
-            ->where('doctor_profile.is_validated', 1)
-            ->get();
-            
-        return response()->json(['status' => 'success', 'data' => $doctors], 200);
-    }
-
-    public function getChildClinicianLinks($child_id)
-    {
-        $links = \Illuminate\Support\Facades\DB::table('clinician_patient_link')
-            ->join('doctor_profile', 'clinician_patient_link.doctor_id', '=', 'doctor_profile.doctor_id')
-            ->join('user', 'doctor_profile.user_id', '=', 'user.user_id')
-            ->where('clinician_patient_link.child_id', $child_id)
-            ->select(
-                'clinician_patient_link.*', 'user.first_name', 'user.last_name', 
-                'user.email', 'doctor_profile.specialty', 'doctor_profile.clinic'
-            )
-            ->get();
-            
-        return response()->json(['status' => 'success', 'data' => $links], 200);
-    }
-
-    public function requestClinicianConnection(Request $request, $child_id)
-    {
-        $validated = $request->validate(['doctor_id' => 'required|integer']);
-        
-        $exists = \Illuminate\Support\Facades\DB::table('clinician_patient_link')
-            ->where('child_id', $child_id)
-            ->where('doctor_id', $validated['doctor_id'])
-            ->first();
-            
-        if ($exists) {
-            return response()->json(['status' => 'error', 'message' => 'Connection already exists.'], 400);
-        }
-
-        \Illuminate\Support\Facades\DB::table('clinician_patient_link')->insert([
-            'doctor_id' => $validated['doctor_id'],
-            'child_id' => $child_id,
-            'linkage_key' => md5(uniqid(rand(), true)),
-            'is_active' => 0, // 0 = Pending Approval
-            'linkage_date' => now()
-        ]);
-        
-        return response()->json(['status' => 'success', 'message' => 'Request sent successfully'], 200);
-    }
-
-    public function cancelClinicianConnection($link_id)
-    {
-        \Illuminate\Support\Facades\DB::table('clinician_patient_link')->where('link_id', $link_id)->delete();
-        return response()->json(['status' => 'success', 'message' => 'Request cancelled'], 200);
     }
 }

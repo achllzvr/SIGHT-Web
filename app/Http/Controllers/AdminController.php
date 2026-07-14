@@ -81,10 +81,7 @@ class AdminController extends Controller
 
         $patientCount = 0;
         if ($profile) {
-            $patientCount = DB::table('clinician_patient_link')
-                ->where('doctor_id', $profile->doctor_id)
-                ->where('is_active', 1)
-                ->count();
+            $patientCount = \App\Models\PatientAccessLog::where('clinician_id', $profile->user_id)->count();
         }
 
         return [
@@ -107,26 +104,9 @@ class AdminController extends Controller
         ];
     }
 
-    /**
-     * Count patients using the strongest available source.
-     *
-     * Some legacy imports only populate the clinician-patient link table, so we
-     * fall back to that data instead of showing zero when child profiles are absent.
-     */
     private function countPatients(): int
     {
-        $profileCount = (int) ChildProfile::count();
-
-        if (!Schema::hasTable('clinician_patient_link')) {
-            return $profileCount;
-        }
-
-        $linkedCount = (int) DB::table('clinician_patient_link')
-            ->whereRaw('COALESCE(is_active, 1) = 1')
-            ->distinct()
-            ->count('child_id');
-
-        return max($profileCount, $linkedCount);
+        return (int) ChildProfile::count();
     }
 
     /**
@@ -167,31 +147,29 @@ class AdminController extends Controller
             'suspended_professionals' => (clone $doctorQuery)->whereRaw('LOWER(status) = ?', ['suspended'])->count(),
         ];
 
-        // Get other admins (case-insensitive for mixed legacy values)
-        $otherAdmins = User::whereRaw('LOWER(role) = ?', ['admin'])->where('user_id', '!=', $admin->user_id)->get()->map(function ($user) {
-            return [
-                'id' => $user->user_id,
-                'name' => $this->displayName($user),
-                'email' => $user->email,
-                'status' => strtolower($user->status ?? 'active'),
-            ];
-        })->toArray();
-
         $auditLogs = \App\Models\AuditLog::with('admin.user')
             ->orderBy('log_id', 'desc')
             ->limit(50)
             ->get()
             ->map(function ($log) {
+                $adminName = 'System';
+                if ($log->admin && $log->admin->user) {
+                    $adminName = trim(($log->admin->user->first_name ?? '') . ' ' . ($log->admin->user->last_name ?? ''));
+                } elseif ($log->actor_user_id) {
+                    $actor = User::find($log->actor_user_id);
+                    $adminName = $actor?->display_name ?? 'User';
+                }
+
                 return [
                     'id' => $log->log_id,
-                    'admin_name' => $log->admin->user->first_name . ' ' . $log->admin->user->last_name,
+                    'admin_name' => $adminName !== '' ? $adminName : 'System',
                     'action' => $log->action_taken,
                     'target' => $log->target_entity,
                     'ip' => $log->ip_address,
                 ];
             })->toArray();
 
-        return view('admin.dashboard', compact('admin', 'professionals', 'stats', 'otherAdmins', 'pagination', 'auditLogs'));
+        return view('admin.dashboard', compact('admin', 'professionals', 'stats', 'pagination', 'auditLogs'));
     }
 
     /**
@@ -326,10 +304,7 @@ class AdminController extends Controller
 
         $patientCount = 0;
         if (isset($professional->doctorProfile)) {
-            $patientCount = DB::table('clinician_patient_link')
-                ->where('doctor_id', $professional->doctorProfile->doctor_id)
-                ->where('is_active', 1)
-                ->count();
+            $patientCount = \App\Models\PatientAccessLog::where('clinician_id', $professional->user_id)->count();
         }
 
         $this->logAdminAction('Created Professional Account', 'User Email: ' . $professional->email);
@@ -417,10 +392,7 @@ class AdminController extends Controller
 
         $patientCount = 0;
         if (isset($professional->doctorProfile)) {
-            $patientCount = DB::table('clinician_patient_link')
-                ->where('doctor_id', $professional->doctorProfile->doctor_id)
-                ->where('is_active', 1)
-                ->count();
+            $patientCount = \App\Models\PatientAccessLog::where('clinician_id', $professional->user_id)->count();
         }
 
         $this->logAdminAction('Updated Professional Account', 'User ID: ' . $professional->user_id);
@@ -459,10 +431,6 @@ class AdminController extends Controller
             $doctorProfile = Schema::hasTable('doctor_profile')
                 ? DB::table('doctor_profile')->where('user_id', $professional->user_id)->first()
                 : null;
-
-            if ($doctorProfile && Schema::hasTable('clinician_patient_link')) {
-                DB::table('clinician_patient_link')->where('doctor_id', $doctorProfile->doctor_id)->delete();
-            }
 
             if (Schema::hasTable('doctor_profile')) {
                 DB::table('doctor_profile')->where('user_id', $professional->user_id)->delete();
@@ -518,129 +486,6 @@ class AdminController extends Controller
         $admin->save();
 
         return redirect()->back()->with('success', 'Settings updated successfully');
-    }
-
-    /**
-     * Add another admin
-     */
-    public function addAdmin(Request $request)
-    {
-        $wantsJson = $request->expectsJson() || $request->isJson();
-
-        try {
-            $validated = $request->validate([
-                'first_name' => 'required|string|max:255',
-                'last_name' => 'required|string|max:255',
-                'email' => 'required|email|unique:user,email',
-                'password' => 'required|string|min:8|confirmed',
-            ]);
-
-            $admin = DB::transaction(function () use ($validated) {
-                $createdAdmin = User::create($this->buildUserPayload(
-                    $validated['first_name'],
-                    $validated['last_name'],
-                    $validated['email'],
-                    Hash::make($validated['password']),
-                    'Admin',
-                    [
-                        'status' => 'active',
-                        'email_verified_at' => now(),
-                    ]
-                ));
-
-                if (empty($createdAdmin->user_id) && !empty($validated['email'])) {
-                    $createdAdmin = User::where('email', $validated['email'])->firstOrFail();
-                }
-
-                if (Schema::hasTable('admin_profile')) {
-                    $profilePayload = [
-                        'user_id' => $createdAdmin->user_id,
-                    ];
-
-                    if (Schema::hasColumn('admin_profile', 'role_level')) {
-                        $profilePayload['role_level'] = 'Admin';
-                    }
-                    if (Schema::hasColumn('admin_profile', 'last_login')) {
-                        $profilePayload['last_login'] = now();
-                    }
-
-                    DB::table('admin_profile')->insert($profilePayload);
-                }
-
-                return $createdAdmin;
-            });
-
-            $payload = [
-                'success' => true,
-                'message' => 'Admin added successfully',
-                'admin' => [
-                    'id' => $admin->user_id,
-                    'name' => $this->displayName($admin),
-                    'first_name' => $admin->first_name ?? $validated['first_name'],
-                    'last_name' => $admin->last_name ?? $validated['last_name'],
-                    'email' => $admin->email,
-                    'status' => strtolower($admin->status ?? 'active'),
-                ],
-            ];
-
-            $this->logAdminAction('Created Admin Account', 'User Email: ' . $createdAdmin->email);
-
-            if ($wantsJson) {
-                return response()->json($payload);
-            }
-
-            return redirect()->back()->with('success', $payload['message']);
-        } catch (ValidationException $e) {
-            if ($wantsJson) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validation failed.',
-                    'errors' => $e->errors(),
-                ], 422);
-            }
-
-            return redirect()->back()->withErrors($e->errors())->withInput();
-        } catch (\Throwable $e) {
-            if ($wantsJson) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $e->getMessage(),
-                ], 500);
-            }
-
-            return redirect()->back()->withErrors(['admin' => $e->getMessage()])->withInput();
-        }
-    }
-
-    /**
-     * Remove an admin
-     */
-    public function removeAdmin($adminId)
-    {
-        // Prevent deleting the last admin
-        $adminCount = User::whereRaw('LOWER(role) = ?', ['admin'])->count();
-        if ($adminCount <= 1) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot remove the last admin',
-            ], 422);
-        }
-
-        $admin = User::findOrFail($adminId);
-
-        DB::transaction(function () use ($admin) {
-            if (Schema::hasTable('admin_profile')) {
-                DB::table('admin_profile')->where('user_id', $admin->user_id)->delete();
-            }
-            $admin->delete();
-        });
-
-        $this->logAdminAction('Deleted Admin Account', 'User ID: ' . $admin->user_id);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Admin removed successfully',
-        ]);
     }
 
     /**

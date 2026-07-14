@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\ChildProfile;
-use App\Models\ClinicianPatientLink;
 use App\Models\GuardianProfile;
 use App\Models\SessionLimits;
 use App\Models\User;
@@ -147,43 +146,6 @@ class RuleEngineService
         return $this->response('success', 'Limits updated successfully', [
             'updated_at' => optional($limits->updated_at)->toIso8601String(),
         ]);
-    }
-
-    public function linkDoctor(int $authUserId, int $doctorId, int $childId): array
-    {
-        $guardian = GuardianProfile::where('user_id', $authUserId)->first();
-
-        if (!$guardian) {
-            return $this->response('error', 'Guardian profile not found', null, ['guardian' => ['Guardian profile not found']], 404);
-        }
-
-        $isOwner = DB::table('guardian_child_link')
-            ->where('guardian_id', $guardian->guardian_id)
-            ->where('child_id', $childId)
-            ->exists();
-
-        if (!$isOwner) {
-            return $this->response('error', 'Unauthorized', null, ['authorization' => ['Unauthorized']], 403);
-        }
-
-        $existing = ClinicianPatientLink::where('doctor_id', $doctorId)
-            ->where('child_id', $childId)
-            ->first();
-
-        if ($existing) {
-            return $this->response('error', 'Link already exists', null, ['doctor_link' => ['Link already exists']], 409);
-        }
-
-        $link = ClinicianPatientLink::create([
-            'doctor_id' => $doctorId,
-            'child_id' => $childId,
-            'linkage_key' => bin2hex(random_bytes(16)),
-            'is_active' => 0,
-        ]);
-
-        return $this->response('success', 'Doctor link request sent', [
-            'link_id' => $link->link_id,
-        ], null, 201);
     }
 
     public function deleteChild(int $authUserId, int $childId): array
