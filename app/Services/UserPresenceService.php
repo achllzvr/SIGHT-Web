@@ -38,7 +38,7 @@ class UserPresenceService
             return [
                 'presence_status' => 'offline',
                 'presence_label' => 'Offline',
-                'last_active' => 'Never',
+                'last_active' => null,
             ];
         }
 

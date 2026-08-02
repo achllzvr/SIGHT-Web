@@ -288,6 +288,7 @@
             color: var(--ds-text);
             font-weight: 500;
             font-size: 13px;
+            margin-top: 6px;
         }
 
         .joined-date {
@@ -1139,9 +1140,11 @@
                                         <span class="status-badge status-{{ strtolower($pro['status'] ?? 'active') }}">{{ ucfirst(strtolower($pro['status'] ?? 'active')) }}</span>
                                     </td>
                                     <td>
-                                        <div class="last-active-time">{{ $pro['last_active'] ?? 'Never' }}</div>
-                                        <div class="joined-date">Joined: {{ $pro['joined_date'] ?? 'N/A' }}</div>
                                         <span class="presence-badge presence-{{ $pro['presence_status'] ?? 'offline' }}">{{ $pro['presence_label'] ?? 'Offline' }}</span>
+                                        @if(!empty($pro['last_active']))
+                                            <div class="last-active-time">{{ $pro['last_active'] }}</div>
+                                        @endif
+                                        <div class="joined-date">Joined: {{ $pro['joined_date'] ?? 'N/A' }}</div>
                                     </td>
                                     <td>
                                         <div class="action-buttons"><span class="action-btn edit">Edit</span></div>
@@ -1188,13 +1191,13 @@
                                         ></span>
                                     </td>
                                     <td>
-                                        <div class="last-active-time" x-text="pro.last_active"></div>
-                                        <div class="joined-date" x-text="'Joined: ' + pro.joined_date"></div>
                                         <span
                                             class="presence-badge"
                                             :class="'presence-' + (pro.presence_status || 'offline')"
                                             x-text="pro.presence_label || 'Offline'"
                                         ></span>
+                                        <div class="last-active-time" x-show="pro.last_active" x-text="pro.last_active"></div>
+                                        <div class="joined-date" x-text="'Joined: ' + pro.joined_date"></div>
                                     </td>
                                     <td>
                                         <div class="action-buttons">
