@@ -1,0 +1,831 @@
+/**
+ * LUMI Arcade — Doctor/Admin visual restyle only.
+ * Matches the mobile app palette, Clan Pro / Super Joyful type,
+ * thick borders, and hard downward shadows. Scoped to .lumi-arcade.
+ */
+
+@font-face {
+  font-family: 'SuperJoyful';
+  src: url('../fonts/SuperJoyful.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ClanPro';
+  src: url('../fonts/ClanPro-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ClanPro';
+  src: url('../fonts/ClanPro-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+.lumi-arcade {
+  /* Mobile arcade tokens */
+  --arcade-purple: #8168ab;
+  --arcade-purple-soft: #ffdcf9;
+  --arcade-green: #62b239;
+  --arcade-green-soft: #c8e8b7;
+  --arcade-mint: #f7fbf4;
+  --arcade-green-bg: #eef8e8;
+  --arcade-white: #ffffff;
+  --arcade-outline: #d4d4d4;
+  --arcade-amber: #ffaf03;
+  --arcade-cyan: #40c4ff;
+  --arcade-red: #f43f5e;
+  --arcade-text: #2d2d2d;
+  --arcade-muted: #6b6b6b;
+  --arcade-disabled: #9a9a9a;
+
+  --ds-brand-50: #eef8e8;
+  --ds-brand-100: #c8e8b7;
+  --ds-brand-500: #62b239;
+  --ds-brand-600: #62b239;
+  --ds-brand-700: #3d6b56;
+  --ds-brand-900: #2d2d2d;
+
+  --ds-purple-50: #ffdcf9;
+  --ds-purple-100: #ffdcf9;
+  --ds-purple-500: #8168ab;
+  --ds-purple-800: #8168ab;
+
+  --ds-accent: #ffaf03;
+  --ds-neutral: #9a9a9a;
+  --ds-surface: #ffffff;
+  --ds-bg: #f7fbf4;
+  --ds-card: #ffffff;
+  --ds-card-highlight: #c8e8b7;
+  --ds-overlay: rgba(45, 45, 45, 0.5);
+
+  --ds-text: #2d2d2d;
+  --ds-text-secondary: #6b6b6b;
+  --ds-text-disabled: #9a9a9a;
+
+  --ds-border: #8168ab;
+  --ds-border-subtle: #d4d4d4;
+  --ds-border-input: #d4d4d4;
+  --ds-border-width: 4px;
+  --ds-focus-ring: rgba(129, 104, 171, 0.28);
+
+  --ds-success: #62b239;
+  --ds-warning: #ffaf03;
+  --ds-error: #f43f5e;
+  --ds-info: #40c4ff;
+
+  --primary-green: #62b239;
+  --lumi-green: #eef8e8;
+  --lumi-mint: #c8e8b7;
+  --bg-light: #f7fbf4;
+  --bg-white: #ffffff;
+  --text-main: #2d2d2d;
+
+  --ds-radius-sm: 8px;
+  --ds-radius-md: 16px;
+  --ds-radius-lg: 24px;
+  --ds-radius-xl: 24px;
+  --ds-radius-full: 9999px;
+
+  --ds-shadow-card: 0 6px 0 0 #d4d4d4;
+  --ds-shadow-card-hover: 0 4px 0 0 #d4d4d4;
+  --ds-shadow-float: 0 5px 0 0 #8168ab;
+  --ds-shadow-modal: 0 8px 0 0 #d4d4d4;
+  --ds-shadow-btn-purple: 0 4px 0 0 #8168ab;
+  --ds-shadow-btn-green: 0 4px 0 0 #62b239;
+
+  --ds-font-sans: 'ClanPro', system-ui, sans-serif;
+  --ds-font-display: 'SuperJoyful', 'ClanPro', system-ui, sans-serif;
+  --ds-font-mono: 'ClanPro', Menlo, monospace;
+
+  font-family: var(--ds-font-sans);
+  color: var(--ds-text);
+  background-color: var(--ds-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.lumi-arcade body,
+body.lumi-arcade {
+  font-family: var(--ds-font-sans) !important;
+  color: var(--ds-text) !important;
+  background-color: var(--ds-bg) !important;
+}
+
+/* Display / brand headings */
+.lumi-arcade .brand,
+.lumi-arcade .ds-brand,
+.lumi-arcade h1,
+.lumi-arcade h2,
+.lumi-arcade h3,
+.lumi-arcade .h1,
+.lumi-arcade .h2,
+.lumi-arcade .h3,
+.lumi-arcade .display-1,
+.lumi-arcade .display-2,
+.lumi-arcade .display-3,
+.lumi-arcade .display-4,
+.lumi-arcade .display-5,
+.lumi-arcade .display-6 {
+  font-family: var(--ds-font-display) !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--arcade-purple);
+}
+
+.lumi-arcade .brand.fs-3,
+.lumi-arcade .navbar .brand {
+  color: var(--arcade-purple) !important;
+}
+
+.lumi-arcade p,
+.lumi-arcade span,
+.lumi-arcade label,
+.lumi-arcade td,
+.lumi-arcade th,
+.lumi-arcade li,
+.lumi-arcade .text-muted,
+.lumi-arcade .form-label,
+.lumi-arcade .form-text,
+.lumi-arcade .nav-link,
+.lumi-arcade .tab,
+.lumi-arcade button,
+.lumi-arcade .btn {
+  font-family: var(--ds-font-sans) !important;
+}
+
+.lumi-arcade .text-muted {
+  color: var(--arcade-muted) !important;
+}
+
+/* Cards / panels */
+.lumi-arcade .panel,
+.lumi-arcade .ds-card,
+.lumi-arcade .card,
+.lumi-arcade .login-card,
+.lumi-arcade .professionals-panel,
+.lumi-arcade .stat-card,
+.lumi-arcade .tabs,
+.lumi-arcade .modal-content,
+.lumi-arcade .session-banner {
+  background: var(--arcade-white) !important;
+  border: 4px solid var(--arcade-outline) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 6px 0 0 var(--arcade-outline) !important;
+}
+
+.lumi-arcade .stat-card {
+  color: var(--arcade-text) !important;
+}
+
+.lumi-arcade .stat-card[style*='#4B6059'],
+.lumi-arcade .stat-card[style*='#4b6059'] {
+  background: var(--arcade-purple-soft) !important;
+  border-color: var(--arcade-purple) !important;
+  box-shadow: 0 6px 0 0 var(--arcade-purple) !important;
+  color: var(--arcade-purple) !important;
+}
+
+.lumi-arcade .ds-topbar,
+.lumi-arcade .navbar.ds-topbar,
+.lumi-arcade nav.navbar {
+  background: var(--arcade-white) !important;
+  border-bottom: 4px solid var(--arcade-outline) !important;
+  box-shadow: none !important;
+}
+
+/* Primary / success buttons — purple fill soft + purple border/shadow (mobile primary) */
+.lumi-arcade .btn-success,
+.lumi-arcade .btn.ds-btn-primary,
+.lumi-arcade .ds-btn,
+.lumi-arcade .btn-signin,
+.lumi-arcade .btn-primary,
+.lumi-arcade .btn-save,
+.lumi-arcade button.btn-primary,
+.lumi-arcade button.btn-save {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0.65rem 1.35rem !important;
+  border-radius: 9999px !important;
+  border: 4px solid var(--arcade-purple) !important;
+  background: var(--arcade-purple-soft) !important;
+  color: var(--arcade-purple) !important;
+  font-family: var(--ds-font-sans) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 0 var(--arcade-purple) !important;
+}
+
+.lumi-arcade .btn-success:hover,
+.lumi-arcade .btn.ds-btn-primary:hover,
+.lumi-arcade .ds-btn:hover,
+.lumi-arcade .btn-signin:hover,
+.lumi-arcade .btn-primary:hover,
+.lumi-arcade .btn-save:hover {
+  background: var(--arcade-purple-soft) !important;
+  color: var(--arcade-purple) !important;
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 0 var(--arcade-purple) !important;
+}
+
+/* Green secondary / outline options */
+.lumi-arcade .btn-outline-success,
+.lumi-arcade .btn-outline-secondary,
+.lumi-arcade .ds-btn-ghost,
+.lumi-arcade .btn-secondary,
+.lumi-arcade button.btn-secondary {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.45rem 1.1rem !important;
+  border-radius: 9999px !important;
+  border: 4px solid var(--arcade-green) !important;
+  background: var(--arcade-white) !important;
+  color: var(--arcade-green) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 0 var(--arcade-green) !important;
+}
+
+.lumi-arcade .btn-outline-success:hover,
+.lumi-arcade .btn-outline-secondary:hover,
+.lumi-arcade .ds-btn-ghost:hover,
+.lumi-arcade .btn-secondary:hover {
+  background: var(--arcade-green-soft) !important;
+  color: var(--arcade-green) !important;
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 0 var(--arcade-green) !important;
+}
+
+/* Nav pills / tabs */
+.lumi-arcade .nav-pills .nav-link {
+  border-radius: 9999px !important;
+  border: 3px solid var(--arcade-outline) !important;
+  background: var(--arcade-white) !important;
+  color: var(--arcade-muted) !important;
+  font-weight: 500 !important;
+  padding: 0.55rem 1.15rem !important;
+}
+
+.lumi-arcade .nav-pills .nav-link.active,
+.lumi-arcade .nav-pill .nav-link.active {
+  background: var(--arcade-purple-soft) !important;
+  border-color: var(--arcade-purple) !important;
+  color: var(--arcade-purple) !important;
+  box-shadow: 0 3px 0 0 var(--arcade-purple);
+}
+
+.lumi-arcade .tabs {
+  border: 4px solid var(--arcade-outline) !important;
+  box-shadow: 0 6px 0 0 var(--arcade-outline) !important;
+  background: var(--arcade-white) !important;
+}
+
+.lumi-arcade .tab-indicator {
+  background: var(--arcade-purple-soft) !important;
+  border: 3px solid var(--arcade-purple);
+  border-radius: 9999px !important;
+}
+
+.lumi-arcade .tab.active {
+  color: var(--arcade-purple) !important;
+}
+
+.lumi-arcade .tab:hover {
+  color: var(--arcade-text) !important;
+}
+
+/* Inputs */
+.lumi-arcade .form-control,
+.lumi-arcade .form-select,
+.lumi-arcade .ds-input,
+.lumi-arcade input[type='text'],
+.lumi-arcade input[type='email'],
+.lumi-arcade input[type='password'],
+.lumi-arcade input[type='number'],
+.lumi-arcade input[type='search'],
+.lumi-arcade select,
+.lumi-arcade textarea {
+  height: auto;
+  min-height: 48px;
+  padding: 0.75rem 1.15rem !important;
+  font-family: var(--ds-font-sans) !important;
+  font-size: 1rem !important;
+  color: var(--arcade-text) !important;
+  background: var(--arcade-white) !important;
+  border: 4px solid var(--arcade-outline) !important;
+  border-radius: 9999px !important;
+  box-shadow: none !important;
+}
+
+.lumi-arcade textarea {
+  border-radius: 24px !important;
+}
+
+.lumi-arcade .form-control:focus,
+.lumi-arcade .form-select:focus,
+.lumi-arcade .ds-input:focus,
+.lumi-arcade input:focus,
+.lumi-arcade select:focus,
+.lumi-arcade textarea:focus {
+  outline: none !important;
+  border-color: var(--arcade-purple) !important;
+  box-shadow: 0 0 0 3px var(--ds-focus-ring) !important;
+}
+
+.lumi-arcade .otp-box {
+  border-radius: 9999px !important;
+  border: 4px solid var(--arcade-purple) !important;
+  background: var(--arcade-purple-soft) !important;
+  color: var(--arcade-purple) !important;
+  font-family: var(--ds-font-display) !important;
+}
+
+/* Tables */
+.lumi-arcade table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.lumi-arcade .table,
+.lumi-arcade table.data-table,
+.lumi-arcade .professionals-panel table {
+  background: var(--arcade-white);
+}
+
+.lumi-arcade .table th,
+.lumi-arcade table th {
+  font-family: var(--ds-font-sans) !important;
+  font-weight: 500 !important;
+  color: var(--arcade-muted) !important;
+  border-bottom: 3px solid var(--arcade-outline) !important;
+  background: var(--arcade-mint) !important;
+}
+
+.lumi-arcade .table td,
+.lumi-arcade table td {
+  border-color: var(--arcade-outline) !important;
+  color: var(--arcade-text) !important;
+}
+
+/* Badges / chips */
+.lumi-arcade .status-badge,
+.lumi-arcade .badge {
+  border-radius: 9999px !important;
+  border: 2px solid var(--arcade-outline);
+  font-weight: 500 !important;
+  letter-spacing: 0.04em;
+}
+
+/* Guide / callouts */
+.lumi-arcade .guide-callout,
+.lumi-arcade .session-banner {
+  background: var(--arcade-green-soft) !important;
+  border: 4px solid var(--arcade-green) !important;
+  box-shadow: 0 4px 0 0 var(--arcade-green) !important;
+}
+
+.lumi-arcade .guide-callout h3 {
+  color: var(--arcade-purple) !important;
+}
+
+.lumi-arcade .chart-guide {
+  border-top: 3px dashed var(--arcade-outline) !important;
+}
+
+.lumi-arcade .chart-guide strong,
+.lumi-arcade .ref-list li strong {
+  color: var(--arcade-text) !important;
+}
+
+.lumi-arcade .accordion-button {
+  font-family: var(--ds-font-sans) !important;
+  font-weight: 500 !important;
+  background: var(--arcade-mint) !important;
+  color: var(--arcade-text) !important;
+  border-radius: 16px !important;
+}
+
+.lumi-arcade .accordion-item {
+  border: 3px solid var(--arcade-outline) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 4px 0 0 var(--arcade-outline);
+}
+
+/* Watermark */
+.lumi-arcade .bg-lumi-text {
+  font-family: var(--ds-font-display) !important;
+  font-weight: 400 !important;
+  color: rgba(129, 104, 171, 0.12) !important;
+  -webkit-text-stroke: 0 !important;
+  text-shadow: none !important;
+  letter-spacing: 0.08em !important;
+}
+
+/* Soft mint page wash */
+.lumi-arcade {
+  background:
+    radial-gradient(circle at 88% 18%, rgba(255, 220, 249, 0.55) 0%, transparent 42%),
+    radial-gradient(circle at 12% 78%, rgba(200, 232, 183, 0.55) 0%, transparent 45%),
+    var(--arcade-mint) !important;
+}
+
+.lumi-arcade .empty-state i,
+.lumi-arcade .bi {
+  color: var(--arcade-purple);
+}
+
+.lumi-arcade a:not(.btn) {
+  color: var(--arcade-purple);
+}
+
+.lumi-arcade a:not(.btn):hover {
+  color: var(--arcade-green);
+}
+
+/* Login shells */
+.lumi-arcade .login-container .login-card,
+.lumi-arcade .hero-section .login-card {
+  backdrop-filter: none !important;
+  background: var(--arcade-white) !important;
+}
+
+.lumi-arcade .alert-danger,
+.lumi-arcade .errors {
+  background: #ffe4e6 !important;
+  border: 3px solid var(--arcade-red) !important;
+  color: var(--arcade-red) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 0 0 var(--arcade-red);
+}
+
+.lumi-arcade .alert-success,
+.lumi-arcade [style*='background: #dcfce7'] {
+  background: var(--arcade-green-soft) !important;
+  border: 3px solid var(--arcade-green) !important;
+  color: var(--arcade-green) !important;
+  border-radius: 16px !important;
+}
+
+/* Soften legacy soft shadows inside admin custom CSS */
+.lumi-arcade .stat-card,
+.lumi-arcade .professionals-panel,
+.lumi-arcade .modal,
+.lumi-arcade [class*='modal'] {
+  box-shadow: 0 6px 0 0 var(--arcade-outline) !important;
+}
+
+.lumi-arcade .btn:focus,
+.lumi-arcade .btn:active {
+  outline: none !important;
+}
+
+/* —— Admin dashboard local classes —— */
+.lumi-arcade .search-box {
+  border: 4px solid var(--arcade-outline) !important;
+  border-radius: 9999px !important;
+  background: var(--arcade-white) !important;
+  font-family: var(--ds-font-sans) !important;
+  color: var(--arcade-text) !important;
+  box-shadow: none !important;
+}
+
+.lumi-arcade .search-box:focus {
+  border-color: var(--arcade-purple) !important;
+  box-shadow: 0 0 0 3px var(--ds-focus-ring) !important;
+}
+
+.lumi-arcade .add-button {
+  border-radius: 9999px !important;
+  border: 4px solid var(--arcade-purple) !important;
+  background: var(--arcade-purple-soft) !important;
+  color: var(--arcade-purple) !important;
+  font-family: var(--ds-font-sans) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 0 var(--arcade-purple) !important;
+}
+
+.lumi-arcade .add-button:hover {
+  background: var(--arcade-purple-soft) !important;
+  color: var(--arcade-purple) !important;
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 0 var(--arcade-purple) !important;
+}
+
+.lumi-arcade .filter-btn {
+  border-radius: 9999px !important;
+  border: 3px solid var(--arcade-outline) !important;
+  background: var(--arcade-white) !important;
+  color: var(--arcade-muted) !important;
+  font-family: var(--ds-font-sans) !important;
+  font-weight: 500 !important;
+}
+
+.lumi-arcade .filter-btn.active,
+.lumi-arcade .filter-btn:hover {
+  background: var(--arcade-purple-soft) !important;
+  border-color: var(--arcade-purple) !important;
+  color: var(--arcade-purple) !important;
+  opacity: 1 !important;
+}
+
+.lumi-arcade .patient-badge {
+  background: var(--arcade-green-soft) !important;
+  color: var(--arcade-green) !important;
+  border: 3px solid var(--arcade-green) !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 3px 0 0 var(--arcade-green);
+}
+
+.lumi-arcade .status-active {
+  background: var(--arcade-green-soft) !important;
+  color: var(--arcade-green) !important;
+  border: 2px solid var(--arcade-green) !important;
+}
+
+.lumi-arcade .status-inactive {
+  background: #f3f4f6 !important;
+  color: var(--arcade-muted) !important;
+  border: 2px solid var(--arcade-outline) !important;
+}
+
+.lumi-arcade .status-suspended {
+  background: #ffe4e6 !important;
+  color: var(--arcade-red) !important;
+  border: 2px solid var(--arcade-red) !important;
+}
+
+.lumi-arcade .status-pending {
+  background: #fff7e0 !important;
+  color: #b45309 !important;
+  border: 2px solid var(--arcade-amber) !important;
+}
+
+.lumi-arcade .action-btn.edit {
+  color: var(--arcade-purple) !important;
+  font-family: var(--ds-font-sans) !important;
+}
+
+.lumi-arcade .action-btn.delete {
+  color: var(--arcade-red) !important;
+}
+
+.lumi-arcade .form-section {
+  background: var(--arcade-white) !important;
+  border: 4px solid var(--arcade-outline) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 6px 0 0 var(--arcade-outline) !important;
+}
+
+.lumi-arcade .form-section::before {
+  background: var(--arcade-purple) !important;
+  border-radius: 12px !important;
+  border: 3px solid var(--arcade-purple);
+  box-shadow: 0 3px 0 0 var(--arcade-purple);
+}
+
+.lumi-arcade .modal-footer button,
+.lumi-arcade .wrap button,
+.lumi-arcade button[type='submit']:not(.tab):not(.nav-link):not(.btn-outline-secondary):not(.btn-outline-success):not(.btn-outline-danger):not(.ds-btn-ghost):not(.action-btn) {
+  border-radius: 9999px !important;
+  border: 4px solid var(--arcade-purple) !important;
+  background: var(--arcade-purple-soft) !important;
+  color: var(--arcade-purple) !important;
+  font-family: var(--ds-font-sans) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 0 var(--arcade-purple) !important;
+  min-height: 44px;
+}
+
+.lumi-arcade .modal-footer .btn-secondary,
+.lumi-arcade .btn-secondary {
+  border-color: var(--arcade-green) !important;
+  background: var(--arcade-white) !important;
+  color: var(--arcade-green) !important;
+  box-shadow: 0 4px 0 0 var(--arcade-green) !important;
+}
+
+.lumi-arcade .stat-label {
+  color: var(--arcade-muted) !important;
+  font-family: var(--ds-font-sans) !important;
+}
+
+.lumi-arcade .stat-value {
+  font-family: var(--ds-font-display) !important;
+  color: var(--arcade-purple) !important;
+  letter-spacing: 0.02em;
+}
+
+.lumi-arcade .professional-name,
+.lumi-arcade .clinic-name,
+.lumi-arcade .last-active-time {
+  color: var(--arcade-text) !important;
+  font-family: var(--ds-font-sans) !important;
+}
+
+.lumi-arcade tbody tr:hover {
+  background: var(--arcade-mint) !important;
+}
+
+.lumi-arcade .toast {
+  border: 3px solid var(--arcade-outline) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 0 0 var(--arcade-outline) !important;
+  font-family: var(--ds-font-sans) !important;
+}
+
+/* —— Login shells —— */
+.lumi-arcade .login-logo {
+  background: var(--arcade-purple-soft) !important;
+  color: var(--arcade-purple) !important;
+  border: 4px solid var(--arcade-purple) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 0 0 var(--arcade-purple);
+  font-family: var(--ds-font-display) !important;
+}
+
+.lumi-arcade .login-card .card-header,
+.lumi-arcade .login-card .card-body {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.lumi-arcade .login-card .card-title {
+  font-family: var(--ds-font-display) !important;
+  color: var(--arcade-purple) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.lumi-arcade .login-card .card-text,
+.lumi-arcade .form-label {
+  color: var(--arcade-muted) !important;
+  font-family: var(--ds-font-sans) !important;
+}
+
+.lumi-arcade .form-control,
+.lumi-arcade .login-card .form-control {
+  border: 4px solid var(--arcade-outline) !important;
+  border-radius: 9999px !important;
+}
+
+.lumi-arcade .form-control:focus,
+.lumi-arcade .login-card .form-control:focus {
+  border-color: var(--arcade-purple) !important;
+  box-shadow: 0 0 0 3px var(--ds-focus-ring) !important;
+}
+
+.lumi-arcade .form-check-input:checked {
+  background-color: var(--arcade-purple) !important;
+  border-color: var(--arcade-purple) !important;
+}
+
+.lumi-arcade .password-toggle {
+  color: var(--arcade-muted) !important;
+}
+
+.lumi-arcade a.forgot-password,
+.lumi-arcade .forgot-link {
+  color: var(--arcade-purple) !important;
+}
+
+/* First-login bare form controls */
+.lumi-arcade .wrap .card {
+  padding: 28px !important;
+}
+
+.lumi-arcade .wrap input {
+  margin-bottom: 14px !important;
+}
+
+.lumi-arcade .wrap label {
+  font-family: var(--ds-font-sans) !important;
+  color: var(--arcade-text) !important;
+}
+
+/* Pending verification inline icon tint */
+.lumi-arcade .bi-hourglass-split {
+  color: var(--arcade-purple) !important;
+}
+
+/* Soften Bootstrap utility bg that fights mint wash */
+.lumi-arcade.bg-light {
+  background-color: transparent !important;
+}
+
+/* Admin logout tab stays red cue */
+.lumi-arcade .tabs .tab[style*='#ef4444'],
+.lumi-arcade .tabs button.tab[style*='color: #ef4444'] {
+  color: var(--arcade-red) !important;
+}
+
+/* KPI / chart guide on doctor portal */
+.lumi-arcade .session-timer {
+  color: var(--arcade-green) !important;
+  font-family: var(--ds-font-sans) !important;
+}
+
+.lumi-arcade .empty-state i {
+  color: var(--arcade-purple) !important;
+}
+
+.lumi-arcade .btn-outline-danger,
+.lumi-arcade .btn-danger {
+  border-radius: 9999px !important;
+  border: 4px solid var(--arcade-red) !important;
+  background: var(--arcade-white) !important;
+  color: var(--arcade-red) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 0 var(--arcade-red) !important;
+}
+
+.lumi-arcade .btn-outline-danger:hover,
+.lumi-arcade .btn-danger:hover {
+  background: #ffe4e6 !important;
+  color: var(--arcade-red) !important;
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 0 var(--arcade-red) !important;
+}
+
+.lumi-arcade .btn-sm {
+  min-height: 36px !important;
+  padding: 0.35rem 0.95rem !important;
+  font-size: 0.8rem !important;
+}
+
+.lumi-arcade .stat-card[style*='background-color: #4B6059'] .stat-label,
+.lumi-arcade .stat-card[style*='background-color: #4B6059'] .stat-value,
+.lumi-arcade .stat-card[style*='#4B6059'] .stat-label,
+.lumi-arcade .stat-card[style*='#4B6059'] .stat-value {
+  color: var(--arcade-purple) !important;
+}
+
+.lumi-arcade .professionals-panel {
+  background: var(--arcade-white) !important;
+  border: 4px solid var(--arcade-outline) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 6px 0 0 var(--arcade-outline) !important;
+  padding: 24px;
+}
+
+.lumi-arcade [style*='background: #dcfce7'],
+.lumi-arcade [style*='background:#dcfce7'] {
+  background: var(--arcade-green-soft) !important;
+  border: 3px solid var(--arcade-green) !important;
+  color: var(--arcade-green) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 0 0 var(--arcade-green);
+}
+
+.lumi-arcade [style*='background: #fee2e2'],
+.lumi-arcade [style*='background:#fee2e2'] {
+  background: #ffe4e6 !important;
+  border: 3px solid var(--arcade-red) !important;
+  color: var(--arcade-red) !important;
+  border-radius: 16px !important;
+}
+
+.lumi-arcade .save-button,
+.lumi-arcade .btn-save {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0.65rem 1.35rem !important;
+  border-radius: 9999px !important;
+  border: 4px solid var(--arcade-purple) !important;
+  background: var(--arcade-purple-soft) !important;
+  color: var(--arcade-purple) !important;
+  font-family: var(--ds-font-sans) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 0 0 var(--arcade-purple) !important;
+  cursor: pointer;
+}
+
+.lumi-arcade .save-button:hover,
+.lumi-arcade .btn-save:hover {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 0 var(--arcade-purple) !important;
+}

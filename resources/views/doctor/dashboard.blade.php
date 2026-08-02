@@ -52,8 +52,9 @@
         .ref-accordion .accordion-button { font-weight: 600; font-size: 0.9rem; }
         .ref-accordion .accordion-body { padding-top: 0.25rem; }
     </style>
+    @include('partials.ds-arcade-head')
 </head>
-<body>
+<body class="lumi-arcade">
 @php
     $hasSession = !empty($active) && !empty($sessionId);
     $hasTelemetry = !empty($dashboardData['has_data']);

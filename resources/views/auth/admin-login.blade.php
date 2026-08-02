@@ -382,8 +382,9 @@
             }
         }
     </style>
+    @include('partials.ds-arcade-head')
 </head>
-<body>
+<body class="lumi-arcade">
     <section class="hero-section">
         <div class="bg-lumi-text">LUMI</div>
 

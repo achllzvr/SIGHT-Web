@@ -836,8 +836,9 @@
             }
         }
     </style>
+    @include('partials.ds-arcade-head')
 </head>
-<body>
+<body class="lumi-arcade">
     <div class="bg-lumi-text">LUMI</div>
     <div class="container" x-data="professionalsManager()">
         <div class="toast-container" x-cloak>

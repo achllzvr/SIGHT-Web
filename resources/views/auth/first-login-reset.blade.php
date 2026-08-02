@@ -16,8 +16,9 @@
         button { width: 100%; border: none; border-radius: 8px; padding: 11px 12px; background: #4b6059; color: #fff; font-weight: 700; cursor: pointer; }
         .errors { background: #fee2e2; color: #991b1b; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
     </style>
+    @include('partials.ds-arcade-head')
 </head>
-<body>
+<body class="lumi-arcade">
 <div class="wrap">
     <div class="card">
         <h1>Set Your New Password</h1>

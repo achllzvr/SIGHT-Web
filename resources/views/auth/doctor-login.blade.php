@@ -235,8 +235,9 @@
             margin-top: 0.5rem;
         }
     </style>
+    @include('partials.ds-arcade-head')
 </head>
-<body>
+<body class="lumi-arcade">
     <div class="bg-lumi-text">LUMI</div>
     <div class="login-container">
         <div class="card login-card">
