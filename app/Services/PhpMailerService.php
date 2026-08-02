@@ -173,17 +173,4 @@ HTML;
 
         return $this->sendEmail($user->email, $user->display_name, $subject, $this->brandedEmail('Verify Your Email', $body));
     }
-
-    public function sendProfessionalInvitation($professional, $tempPassword)
-    {
-        $subject = 'Your LUMI Account is Pending Verification';
-        $name = htmlspecialchars($professional->display_name ?? 'Clinician', ENT_QUOTES, 'UTF-8');
-        $body = "<p style=\"margin:0 0 14px;font-size:15px;\">Dear <strong>{$name}</strong>,</p>"
-            . '<p style="margin:0 0 14px;font-size:15px;color:#6b6b6b;">Your professional account has been created in LUMI. Your email is currently <strong>pending verification</strong> by an administrator.</p>'
-            . $this->credentialBox((string) $professional->email, (string) $tempPassword)
-            . '<p style="margin:0 0 8px;font-size:14px;color:#f43f5e;"><strong>Important:</strong> You will not be able to access your account until an administrator verifies your email.</p>'
-            . '<p style="margin:18px 0 0;font-size:14px;color:#6b6b6b;">Best regards,<br><strong style="color:#8168ab;">The LUMI Team</strong></p>';
-
-        return $this->sendEmail($professional->email, $professional->display_name, $subject, $this->brandedEmail('Account Pending Verification', $body));
-    }
 }

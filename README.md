@@ -40,7 +40,7 @@ php artisan serve
 php artisan test
 ```
 
-See `EMAIL_SETUP.md` / `GMAIL_MYSQL_SETUP.md` for SMTP.
+Configure Gmail SMTP with `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, and `MAIL_FROM_NAME` in `.env`.
 
 ## Docs
 

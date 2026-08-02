@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\SharedApiController;
 use App\Http\Controllers\Api\GuardianApiController;
-use App\Http\Controllers\Api\DoctorApiController;
 use App\Http\Controllers\Api\AdminApiController;
 use App\Http\Controllers\Api\MobileApiController;
 use App\Http\Controllers\Api\AccessApiController;
