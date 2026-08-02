@@ -172,10 +172,50 @@ class PatientAccessSessionService
 
     public function historyForChild(int $guardianUserId, int $childId): array
     {
-        $this->assertGuardianOwnsChild($guardianUserId, $childId);
+        $guardian = GuardianProfile::where('user_id', $guardianUserId)->first();
+        if (!$guardian) {
+            return $this->error('Guardian profile not found', 404, 'NOT_FOUND');
+        }
+
+        $owns = DB::table('guardian_child_link')
+            ->where('guardian_id', $guardian->guardian_id)
+            ->where('child_id', $childId)
+            ->exists();
+
+        if (!$owns) {
+            return $this->error('Unauthorized', 403, 'UNAUTHORIZED');
+        }
 
         $rows = PatientAccessLog::with(['child.user', 'clinician'])
             ->where('child_id', $childId)
+            ->orderByDesc('accessed_at')
+            ->limit(100)
+            ->get()
+            ->map(fn (PatientAccessLog $log) => $this->historyRow($log))
+            ->values()
+            ->all();
+
+        return $this->ok('Access history', ['logs' => $rows]);
+    }
+
+    /** All viewing sessions across every child linked to this guardian. */
+    public function historyForGuardian(int $guardianUserId): array
+    {
+        $guardian = GuardianProfile::where('user_id', $guardianUserId)->first();
+        if (!$guardian) {
+            return $this->error('Guardian profile not found', 404, 'NOT_FOUND');
+        }
+
+        $childIds = DB::table('guardian_child_link')
+            ->where('guardian_id', $guardian->guardian_id)
+            ->pluck('child_id');
+
+        if ($childIds->isEmpty()) {
+            return $this->ok('Access history', ['logs' => []]);
+        }
+
+        $rows = PatientAccessLog::with(['child.user', 'clinician'])
+            ->whereIn('child_id', $childIds)
             ->orderByDesc('accessed_at')
             ->limit(100)
             ->get()

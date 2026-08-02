@@ -58,6 +58,13 @@ class AccessApiController extends Controller
         return response()->json($result['body'], $result['http_code']);
     }
 
+    public function guardianAccessLogs()
+    {
+        $result = $this->sessionService->historyForGuardian((int) Auth::id());
+
+        return response()->json($result['body'], $result['http_code']);
+    }
+
     public function ingestActivity(Request $request)
     {
         $validated = $request->validate([

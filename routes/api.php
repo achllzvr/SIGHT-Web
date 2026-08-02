@@ -60,6 +60,7 @@ Route::prefix('mobile')->group(function () {
         Route::get('/children/{child_id}/access-session', [AccessApiController::class, 'childActiveSession']);
         Route::post('/access-sessions/{id}/end', [AccessApiController::class, 'endSessionMobile']);
         Route::get('/children/{child_id}/access-logs', [AccessApiController::class, 'childAccessLogs']);
+        Route::get('/guardian/access-logs', [AccessApiController::class, 'guardianAccessLogs']);
         Route::post('/activity-logs', [AccessApiController::class, 'ingestActivity']);
         Route::post('/legal-agreements', [AccessApiController::class, 'acceptLegalDocuments']);
 
