@@ -268,46 +268,83 @@ body.lumi-arcade {
   box-shadow: 0 2px 0 0 var(--arcade-green) !important;
 }
 
-/* Nav pills / tabs */
-.lumi-arcade .nav-pills,
-.lumi-arcade #portalTabs {
+/* Doctor portal tab switcher — spaced + aligned with content */
+.lumi-arcade #portalTabs.nav-pills {
   display: flex !important;
   flex-wrap: wrap !important;
-  align-items: flex-start !important;
-  gap: 12px !important;
-  margin: 0 0 1.5rem !important;
-  padding: 0 0 8px !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 0 !important;
+  width: 100% !important;
+  margin: 0 0 1.75rem !important;
+  padding: 4px 0 10px !important;
   list-style: none !important;
 }
 
-.lumi-arcade .nav-pills .nav-item,
-.lumi-arcade #portalTabs .nav-item {
-  margin: 0 !important;
-  padding: 0 !important;
+.lumi-arcade #portalTabs > .nav-item {
   display: block !important;
+  margin: 0 14px 10px 0 !important;
+  padding: 0 !important;
+  float: none !important;
 }
 
-.lumi-arcade .nav-pills .nav-link,
+.lumi-arcade #portalTabs > .nav-item:last-child {
+  margin-right: 0 !important;
+}
+
 .lumi-arcade #portalTabs .nav-link {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+  padding: 0.65rem 1.35rem !important;
+  border: 3px solid var(--arcade-outline) !important;
+  border-radius: 9999px !important;
+  background: var(--arcade-white) !important;
+  color: var(--arcade-muted) !important;
+  font-family: var(--ds-font-sans) !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  box-shadow: 0 3px 0 0 transparent !important;
+  text-decoration: none !important;
+}
+
+.lumi-arcade #portalTabs .nav-link.active {
+  background: var(--arcade-purple-soft) !important;
+  border-color: var(--arcade-purple) !important;
+  color: var(--arcade-purple) !important;
+  box-shadow: 0 3px 0 0 var(--arcade-purple) !important;
+}
+
+.lumi-arcade #portalTabs .nav-link:hover:not(.active) {
+  border-color: var(--arcade-purple) !important;
+  color: var(--arcade-purple) !important;
+}
+
+/* Generic nav-pills fallback (non-portal) */
+.lumi-arcade .nav-pills:not(#portalTabs) {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  margin: 0 0 1.5rem !important;
+  padding: 0 0 8px !important;
+}
+
+.lumi-arcade .nav-pills:not(#portalTabs) .nav-link {
   border-radius: 9999px !important;
   border: 3px solid var(--arcade-outline) !important;
   background: var(--arcade-white) !important;
   color: var(--arcade-muted) !important;
   font-weight: 500 !important;
-  font-size: 0.9rem !important;
   padding: 0.55rem 1.15rem !important;
-  line-height: 1.2 !important;
-  white-space: nowrap;
-  margin: 0 !important;
-  box-shadow: 0 3px 0 0 transparent;
 }
 
-.lumi-arcade .nav-pills .nav-link.active,
-.lumi-arcade .nav-pill .nav-link.active,
-.lumi-arcade #portalTabs .nav-link.active {
+.lumi-arcade .nav-pills:not(#portalTabs) .nav-link.active,
+.lumi-arcade .nav-pill .nav-link.active {
   background: var(--arcade-purple-soft) !important;
   border-color: var(--arcade-purple) !important;
   color: var(--arcade-purple) !important;

@@ -53,6 +53,41 @@
         .ref-accordion .accordion-body { padding-top: 0.25rem; }
     </style>
     @include('partials.ds-arcade-head')
+    <style>
+        /* Loaded after arcade CSS so spacing wins on Hostinger/cache */
+        #portalTabs.nav {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
+            gap: 0 !important;
+            margin: 1.25rem 0 1.75rem !important;
+            padding: 0 0 0.65rem !important;
+        }
+        #portalTabs > .nav-item {
+            margin: 0 14px 10px 0 !important;
+            padding: 0 !important;
+        }
+        #portalTabs > .nav-item:last-child { margin-right: 0 !important; }
+        #portalTabs .nav-link {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            min-height: 44px !important;
+            padding: 0.65rem 1.35rem !important;
+            border: 3px solid #d4d4d4 !important;
+            border-radius: 9999px !important;
+            background: #fff !important;
+            color: #6b6b6b !important;
+            line-height: 1.2 !important;
+            box-shadow: none !important;
+        }
+        #portalTabs .nav-link.active {
+            background: #ffdcf9 !important;
+            border-color: #8168ab !important;
+            color: #8168ab !important;
+            box-shadow: 0 3px 0 0 #8168ab !important;
+        }
+    </style>
 </head>
 <body class="lumi-arcade">
 @php
@@ -80,7 +115,7 @@
     </div>
 </nav>
 
-<div class="container pb-5">
+<div class="container pb-5 doctor-portal">
     <ul class="nav nav-pills nav-pill" id="portalTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link rounded-pill {{ $openSettings ? '' : 'active' }}" id="access-tab" data-bs-toggle="pill" data-bs-target="#accessPane" type="button" role="tab" aria-controls="accessPane" aria-selected="{{ $openSettings ? 'false' : 'true' }}">Patient Access</button>
@@ -97,7 +132,7 @@
         <div class="tab-pane fade {{ $openSettings ? '' : 'show active' }}" id="accessPane" role="tabpanel" aria-labelledby="access-tab">
             @if(!$hasSession)
             <div class="row justify-content-center">
-                <div class="col-lg-7">
+                <div class="col-12">
                     <div class="panel p-4 p-md-5 text-center">
                         <h2 class="brand h3 mb-2">Enter on-site access code</h2>
                         <p class="text-muted mb-2">Scan the parent QR code or type the 6-digit OTP. Access lasts until the parent or you end the session.</p>
