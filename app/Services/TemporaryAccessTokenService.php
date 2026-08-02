@@ -17,7 +17,10 @@ class TemporaryAccessTokenService
      */
     public function generateForChild(int $guardianUserId, int $childId): array
     {
-        $this->assertGuardianOwnsChild($guardianUserId, $childId);
+        $ownership = $this->assertGuardianOwnsChild($guardianUserId, $childId);
+        if ($ownership !== null) {
+            return $ownership;
+        }
 
         $child = ChildProfile::find($childId);
         if (!$child) {
@@ -89,11 +92,12 @@ class TemporaryAccessTokenService
         return $code;
     }
 
-    private function assertGuardianOwnsChild(int $guardianUserId, int $childId): void
+    /** @return array|null error payload, or null when ownership is valid */
+    private function assertGuardianOwnsChild(int $guardianUserId, int $childId): ?array
     {
         $guardian = GuardianProfile::where('user_id', $guardianUserId)->first();
         if (!$guardian) {
-            abort(404, 'Guardian profile not found');
+            return $this->error('Guardian profile not found', 404);
         }
 
         $owns = DB::table('guardian_child_link')
@@ -102,8 +106,10 @@ class TemporaryAccessTokenService
             ->exists();
 
         if (!$owns) {
-            abort(403, 'Unauthorized');
+            return $this->error('Unauthorized', 403);
         }
+
+        return null;
     }
 
     private function ok(string $message, array $data = [], int $code = 200): array

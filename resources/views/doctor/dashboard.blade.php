@@ -35,6 +35,22 @@
         .empty-state i { font-size: 2rem; color: var(--ds-text-disabled); }
         .otp-hint { font-size: 0.875rem; color: var(--ds-text-secondary); }
         .session-timer { font-size: 0.875rem; color: var(--ds-brand-700); }
+        .guide-callout {
+            background: #f0fdf4;
+            border: 1px solid rgba(82, 114, 103, 0.35);
+            border-radius: var(--ds-radius-md);
+            padding: 1rem 1.15rem;
+        }
+        .guide-callout h3 { font-size: 0.95rem; margin-bottom: 0.35rem; }
+        .guide-callout p, .chart-guide, .kpi-hint { font-size: 0.8125rem; color: var(--ds-text-secondary); line-height: 1.45; margin-bottom: 0; }
+        .kpi-hint { margin-top: 0.35rem; }
+        .chart-guide { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed rgba(0,0,0,0.08); }
+        .chart-guide strong { color: #334155; font-weight: 600; }
+        .ref-list { margin: 0; padding-left: 1.1rem; }
+        .ref-list li { margin-bottom: 0.55rem; font-size: 0.8125rem; color: var(--ds-text-secondary); line-height: 1.45; }
+        .ref-list li strong { color: #1e293b; }
+        .ref-accordion .accordion-button { font-weight: 600; font-size: 0.9rem; }
+        .ref-accordion .accordion-body { padding-top: 0.25rem; }
     </style>
 </head>
 <body>
@@ -110,37 +126,149 @@
                 </div>
             </div>
 
-            <div class="row g-3 mb-4">
-                <div class="col-md-3"><div class="panel p-3"><div class="text-muted small">Health Grade</div><div class="fs-4 fw-bold">{{ $dashboardData['health_grade'] }}</div></div></div>
-                <div class="col-md-3"><div class="panel p-3"><div class="text-muted small">Health Score</div><div class="fs-4 fw-bold">{{ $dashboardData['health_score_display'] }}</div></div></div>
-                <div class="col-md-3"><div class="panel p-3"><div class="text-muted small">Avg Distance</div><div class="fs-4 fw-bold">{{ $dashboardData['distance_display'] }}</div></div></div>
-                <div class="col-md-3"><div class="panel p-3"><div class="text-muted small">&lt; 30 cm Violations</div><div class="fs-4 fw-bold text-warning">{{ $dashboardData['distance_violations'] }}</div></div></div>
+            <div class="guide-callout mb-4">
+                <h3 class="d-flex align-items-center gap-2"><i class="bi bi-info-circle"></i> How to read this visit snapshot</h3>
+                <p class="mb-2">
+                    These figures come from the child’s <strong>LUMI mobile app</strong>. During Watch sessions, on-device face tracking records blink rate and viewing distance; the app curates those samples into short metric windows and the parent syncs them to SIGHT.
+                    Charts below cover the <strong>last 7 days</strong> (daily aggregates). Summary cards use that same window.
+                    @if(!empty($lastSync))
+                        Last parent sync: <strong>{{ \Carbon\Carbon::parse($lastSync)->format('M d, Y g:i A') }}</strong>.
+                    @else
+                        No parent sync timestamp is on file yet for this child.
+                    @endif
+                </p>
+                <p class="mb-0">
+                    Use this as <strong>contextual support for counseling</strong> (near-work habits, breaks, blink patterns)—not as a substitute for clinical examination or refraction.
+                </p>
             </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="panel p-3 h-100">
+                        <div class="text-muted small">Health Grade</div>
+                        <div class="fs-4 fw-bold">{{ $dashboardData['health_grade'] }}</div>
+                        <p class="kpi-hint">Label from the latest health score: Excellent ≥90 · Good ≥80 · Fair ≥70 · Needs Attention &lt;70.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="panel p-3 h-100">
+                        <div class="text-muted small">Health Score</div>
+                        <div class="fs-4 fw-bold">{{ $dashboardData['health_score_display'] }}</div>
+                        <p class="kpi-hint">0–100 score from the app. Drops when viewing is too close or blinks are too few; recovers after healthy breaks/exercises.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="panel p-3 h-100">
+                        <div class="text-muted small">Avg Distance</div>
+                        <div class="fs-4 fw-bold">{{ $dashboardData['distance_display'] }}</div>
+                        <p class="kpi-hint">Mean viewing distance across days with data. Target habit: keep screens at about <strong>30 cm or farther</strong>.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="panel p-3 h-100">
+                        <div class="text-muted small">&lt; 30 cm Violations</div>
+                        <div class="fs-4 fw-bold text-warning">{{ $dashboardData['distance_violations'] }}</div>
+                        <p class="kpi-hint">Number of days in this 7-day window whose <em>daily average</em> distance fell below 30 cm (near-work risk days).</p>
+                    </div>
+                </div>
+            </div>
+
+            @if($hasTelemetry)
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="panel p-3 h-100">
+                        <div class="text-muted small">Avg Blink Rate</div>
+                        <div class="fs-5 fw-bold">{{ $dashboardData['blink_rate_display'] }}</div>
+                        <p class="kpi-hint">Daily averages, then mean across days with data. Low blink rates (&lt;12/min in daily avg) are flagged as dry-eye / concentration risk.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="panel p-3 h-100">
+                        <div class="text-muted small">Avg Screen Time</div>
+                        <div class="fs-5 fw-bold">{{ $dashboardData['screen_time_display'] }}</div>
+                        <p class="kpi-hint">Minutes of active Watch tracking per day (averaged). Reflects supervised play/use tracked by LUMI—not all device use.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="panel p-3 h-100">
+                        <div class="text-muted small">Low Blink Days</div>
+                        <div class="fs-5 fw-bold">{{ $dashboardData['low_blink_events'] }}</div>
+                        <p class="kpi-hint">Days whose average blink rate was below 12 blinks/min. Useful when discussing blink exercises and break habits.</p>
+                    </div>
+                </div>
+            </div>
+            @endif
 
             @if(!$hasTelemetry)
             <div class="empty-state mb-4">
                 <i class="bi bi-cloud-slash d-block mb-3"></i>
                 <h3 class="h6 text-dark mb-2">No eye-health data yet</h3>
-                <p class="mb-0">Ask the parent to sync from the LUMI app.@if(empty($lastSync)) No sync has been recorded for this child yet.@else Last sync: {{ \Carbon\Carbon::parse($lastSync)->format('M d, Y g:i A') }}.@endif</p>
+                <p class="mb-0">Ask the parent to open LUMI, let the child use Watch tracking, then sync from the parent account.@if(empty($lastSync)) No sync has been recorded for this child yet.@else Last sync: {{ \Carbon\Carbon::parse($lastSync)->format('M d, Y g:i A') }}.@endif</p>
             </div>
             @else
             <div class="row g-3">
                 <div class="col-lg-6">
                     <div class="panel p-3">
-                        <h3 class="h6 mb-3">Blink Rate &amp; Viewing Distance</h3>
+                        <h3 class="h6 mb-1">Blink Rate &amp; Viewing Distance</h3>
+                        <p class="text-muted small mb-3">Daily averages over the last 7 days. Red dashed line = 30 cm near-work warning.</p>
                         <canvas id="complianceChart" height="180"></canvas>
+                        <div class="chart-guide">
+                            <strong>What this shows:</strong> Blink rate (blinks/min) and average face-to-screen distance (cm) for each day.<br>
+                            <strong>How it’s calculated:</strong> The app samples blinks and distance during Watch sessions, stores short windows, then syncs. The portal averages those windows per calendar day.<br>
+                            <strong>Why it matters:</strong> Prolonged near focus and reduced blinking are linked to digital eye strain and discomfort. Sustained averages under 30 cm or sparse blinking are counseling cues for posture, breaks, and blink training.
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="panel p-3">
-                        <h3 class="h6 mb-3">Screen Time &amp; Strain</h3>
+                        <h3 class="h6 mb-1">Screen Time &amp; Strain</h3>
+                        <p class="text-muted small mb-3">Bars = tracked Watch minutes; line = strain events counted that day.</p>
                         <canvas id="screenTimeChart" height="180"></canvas>
+                        <div class="chart-guide">
+                            <strong>What this shows:</strong> How long Watch tracking was active and how often near-distance “strain” samples were counted.<br>
+                            <strong>How it’s calculated:</strong> Screen time is minutes of active Watch use logged by LUMI. Strain events count distance samples closer than the harmful threshold (default 30 cm) inside each metric window, then summed per day.<br>
+                            <strong>Why it matters:</strong> Higher load plus frequent close-range samples suggests denser near-work exposure—helpful when advising 20-20-20 breaks and session limits.
+                        </div>
                     </div>
                 </div>
                 <div class="col-12">
                     <div class="panel p-3">
-                        <h3 class="h6 mb-3">Health Score Trend</h3>
+                        <h3 class="h6 mb-1">Health Score Trend</h3>
+                        <p class="text-muted small mb-3">Daily average of the child’s in-app health score (0–100).</p>
                         <canvas id="healthScoreChart" height="120"></canvas>
+                        <div class="chart-guide">
+                            <strong>What this shows:</strong> Day-by-day health score from LUMI’s gamified eye-care meter.<br>
+                            <strong>How it’s calculated:</strong> The app starts near 100 and deducts points when accommodative demand is high (closer than ~30 cm) or blink rate falls below a protective baseline (~10 blinks/min). Completing breaks and blink exercises can restore points. Daily points here are averages of synced windows.<br>
+                            <strong>Why it matters:</strong> A falling trend often means accumulating near-work stress; a rising trend suggests better habits or recovery after interventions you recommend.
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="panel p-0 overflow-hidden ref-accordion">
+                        <div class="accordion accordion-flush" id="metricReference">
+                            <div class="accordion-item border-0">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#metricReferenceBody" aria-expanded="false" aria-controls="metricReferenceBody">
+                                        <i class="bi bi-journal-medical me-2"></i> Metric reference — definitions, source &amp; clinical use
+                                    </button>
+                                </h2>
+                                <div id="metricReferenceBody" class="accordion-collapse collapse" data-bs-parent="#metricReference">
+                                    <div class="accordion-body px-4 pb-4">
+                                        <ul class="ref-list">
+                                            <li><strong>Data source.</strong> Parent-authorized LUMI child account. Metrics are captured on the phone during Watch tracking (face present), curated locally, then synced to SIGHT when the parent is online.</li>
+                                            <li><strong>Time window.</strong> This view always shows the rolling last 7 calendar days. Days without synced data appear as gaps on charts.</li>
+                                            <li><strong>Blink rate.</strong> Estimated blinks per minute from on-device facial landmarks. Sustained low rates can increase tear-film evaporation and symptoms of digital eye strain.</li>
+                                            <li><strong>Viewing distance.</strong> Estimated face-to-device distance in centimeters. The portal treats &lt; 30 cm as the harmful near-work zone (≈ &gt; 3.3 D accommodative demand).</li>
+                                            <li><strong>Strain events.</strong> Count of close-range distance samples inside each metric window (threshold 30 cm), summed per day—not a medical diagnosis of “eye strain.”</li>
+                                            <li><strong>Screen time.</strong> Minutes of LUMI Watch tracking only. It under-represents total screen exposure outside the app.</li>
+                                            <li><strong>Health score &amp; grade.</strong> App-side behavioral score (0–100) summarizing distance + blink compliance, with recovery from healthy breaks. Grade bands: Excellent ≥90, Good ≥80, Fair ≥70, Needs Attention &lt;70.</li>
+                                            <li><strong>Violations / low-blink days.</strong> Counts of days whose <em>daily average</em> distance &lt; 30 cm or blink rate &lt; 12/min—quick flags for counseling, not per-second episode counts.</li>
+                                            <li><strong>Limitations.</strong> Accuracy depends on camera angle, lighting, calibration, and parent sync frequency. Prefer trends and counseling context over single-day extremes.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -151,6 +279,7 @@
         <div class="tab-pane fade" id="historyPane">
             <div class="panel p-4">
                 <h2 class="h5 brand mb-3">Your viewing history</h2>
+                <p class="text-muted small mb-3">Past temporary access sessions you opened with a parent OTP/QR. Active sessions remain open until you or the parent end them.</p>
                 <div class="table-responsive">
                     <table class="table align-middle">
                         <thead>
