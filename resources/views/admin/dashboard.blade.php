@@ -496,13 +496,13 @@
 
         .form-section {
             background: #FCFFFD;
-            padding: 30px;
+            padding: 28px;
             border-radius: var(--ds-radius-lg);
             box-shadow: 0 2px 16px rgba(0,0,0,0.06);
             margin-bottom: 24px;
             display: flex;
-            gap: 20px;
-            align-items: flex-start;
+            flex-direction: column;
+            gap: 18px;
         }
 
         .form-section::before {
@@ -510,12 +510,19 @@
             display: none;
         }
 
+        .form-section__header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
         .form-section__icon {
-            min-width: 50px;
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            flex-shrink: 0;
+            width: 52px;
+            height: 52px;
+            min-width: 52px;
+            max-width: 52px;
+            border-radius: 14px;
+            flex: 0 0 52px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -523,18 +530,33 @@
             border: 3px solid #8168ab;
             box-shadow: 0 3px 0 0 #8168ab;
             color: #8168ab;
-            font-size: 1.35rem;
+            font-size: 1.4rem;
+            line-height: 1;
+        }
+
+        .form-section__icon i {
+            display: block;
+            line-height: 1;
+        }
+
+        .form-section__heading {
+            flex: 1;
+            min-width: 0;
         }
 
         .form-section h3 {
             font-size: 16px;
             font-weight: 700;
-            margin-bottom: 4px;
+            margin: 0 0 4px;
             color: var(--ds-text);
         }
 
-        .form-section > div {
-            flex: 1;
+        .form-section .section-subtitle {
+            margin: 0;
+        }
+
+        .form-section__body {
+            width: 100%;
         }
 
         .presence-badge {
@@ -1259,10 +1281,14 @@
             <form class="settings-form" action="{{ url('/admin/settings') }}" method="POST">
                 @csrf
                 <div class="form-section">
-                    <div class="form-section__icon" aria-hidden="true"><i class="bi bi-person-gear"></i></div>
-                    <div>
-                        <h3>Account Settings</h3>
-                        <p class="section-subtitle">Manage your account information</p>
+                    <div class="form-section__header">
+                        <div class="form-section__icon" aria-hidden="true"><i class="bi bi-person-gear"></i></div>
+                        <div class="form-section__heading">
+                            <h3>Account Settings</h3>
+                            <p class="section-subtitle">Manage your account information</p>
+                        </div>
+                    </div>
+                    <div class="form-section__body">
                         <div class="form-row">
                             <div class="form-group">
                                 <label>First Name</label>
@@ -1285,10 +1311,14 @@
                 </div>
 
                 <div class="form-section">
-                    <div class="form-section__icon" aria-hidden="true"><i class="bi bi-shield-lock"></i></div>
-                    <div>
-                        <h3>Change Password</h3>
-                        <p class="section-subtitle">Update your password regularly</p>
+                    <div class="form-section__header">
+                        <div class="form-section__icon" aria-hidden="true"><i class="bi bi-shield-lock"></i></div>
+                        <div class="form-section__heading">
+                            <h3>Change Password</h3>
+                            <p class="section-subtitle">Update your password regularly</p>
+                        </div>
+                    </div>
+                    <div class="form-section__body">
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Current Password</label>
@@ -1307,11 +1337,15 @@
                 </div>
 
                 <div class="form-section">
-                    <div class="form-section__icon" aria-hidden="true"><i class="bi bi-key"></i></div>
-                    <div>
-                        <h3>Administrator Access</h3>
-                        <p class="section-subtitle">LUMI enforces a single super-admin account. Secondary admin creation has been disabled.</p>
-                        <p style="margin-top: 12px; color:#6b7280;">Signed in as {{ $admin->display_name }} ({{ $admin->email }}).</p>
+                    <div class="form-section__header">
+                        <div class="form-section__icon" aria-hidden="true"><i class="bi bi-key"></i></div>
+                        <div class="form-section__heading">
+                            <h3>Administrator Access</h3>
+                            <p class="section-subtitle">LUMI enforces a single super-admin account. Secondary admin creation has been disabled.</p>
+                        </div>
+                    </div>
+                    <div class="form-section__body">
+                        <p style="margin: 0; color:#6b7280;">Signed in as {{ $admin->display_name }} ({{ $admin->email }}).</p>
                     </div>
                 </div>
 
