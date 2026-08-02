@@ -12,7 +12,7 @@
                 <table role="presentation" width="620" cellspacing="0" cellpadding="0" style="width:620px;max-width:94%;background:#ffffff;border-radius:24px;overflow:hidden;border:4px solid #d4d4d4;box-shadow:0 6px 0 0 #d4d4d4;">
                     <tr>
                         <td style="background:#ffdcf9;border-bottom:4px solid #8168ab;padding:28px;text-align:center;">
-                            <img src="{{ rtrim(config('app.url'), '/') }}/assets/lumi_app_icon.png" alt="LUMI" width="64" height="64" style="display:block;margin:0 auto 14px;border-radius:16px;border:3px solid #8168ab;">
+                            @include('emails.partials.logo')
                             <div style="font-size:13px;font-weight:700;letter-spacing:0.14em;color:#8168ab;text-transform:uppercase;">LUMI</div>
                             <h1 style="margin:10px 0 0;font-size:26px;line-height:1.15;color:#8168ab;text-transform:uppercase;letter-spacing:0.04em;">Welcome to Lumi</h1>
                             <p style="margin:8px 0 0;font-size:14px;color:#8168ab;opacity:0.9;">Professional Account Created</p>

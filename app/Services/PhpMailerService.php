@@ -15,7 +15,7 @@ class PhpMailerService
         $headline = htmlspecialchars($headline, ENT_QUOTES, 'UTF-8');
         $eyebrow = htmlspecialchars(strtoupper($eyebrow), ENT_QUOTES, 'UTF-8');
         $year = date('Y');
-        $logoUrl = rtrim((string) config('app.url'), '/') . '/assets/lumi_app_icon.png';
+        $logoSrc = $this->embeddedLogoSrc();
 
         return <<<HTML
 <!DOCTYPE html>
@@ -31,7 +31,7 @@ class PhpMailerService
 <table role="presentation" width="620" cellspacing="0" cellpadding="0" style="width:620px;max-width:94%;background:#ffffff;border-radius:24px;overflow:hidden;border:4px solid #d4d4d4;box-shadow:0 6px 0 0 #d4d4d4;">
 <tr>
 <td style="background:#ffdcf9;border-bottom:4px solid #8168ab;padding:28px 28px 22px;text-align:center;">
-<img src="{$logoUrl}" alt="LUMI" width="64" height="64" style="display:block;margin:0 auto 14px;border-radius:16px;border:3px solid #8168ab;">
+<img src="{$logoSrc}" alt="LUMI" width="64" height="64" style="display:block;margin:0 auto 14px;border-radius:16px;border:3px solid #8168ab;">
 <div style="font-size:13px;font-weight:700;letter-spacing:0.14em;color:#8168ab;text-transform:uppercase;">{$eyebrow}</div>
 <h1 style="margin:10px 0 0;font-size:26px;line-height:1.15;color:#8168ab;text-transform:uppercase;letter-spacing:0.04em;">{$headline}</h1>
 </td>
@@ -128,13 +128,34 @@ HTML;
 
             $result = $this->mail->send();
             Log::info("Email sent successfully to {$toEmail}");
-            $this->mail->clearAddresses();
 
             return $result;
         } catch (\Exception $e) {
             Log::error('Email sending failed: ' . ($this->mail->ErrorInfo ?: $e->getMessage()));
             throw new \Exception('Email could not be sent. Error: ' . ($this->mail->ErrorInfo ?: $e->getMessage()));
+        } finally {
+            $this->mail->clearAddresses();
+            $this->mail->clearAttachments();
         }
+    }
+
+    /**
+     * Embed a compact logo so clients do not need to fetch APP_URL assets.
+     */
+    private function embeddedLogoSrc(): string
+    {
+        $path = public_path('assets/email/lumi_logo.png');
+        if (!is_file($path)) {
+            $path = public_path('assets/lumi_app_icon.png');
+        }
+
+        if (!is_file($path)) {
+            return '';
+        }
+
+        $this->mail->addEmbeddedImage($path, 'lumi-logo', 'lumi_logo.png');
+
+        return 'cid:lumi-logo';
     }
 
     public function sendEmailVerificationOtp($user, string $otpCode): bool
