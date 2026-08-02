@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SIGHT Telemetry Report</title>
+    <title>LUMI Telemetry Report</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #1a1a1a; }
         h1 { font-size: 20px; margin-bottom: 4px; }
@@ -18,7 +18,7 @@
     </style>
 </head>
 <body>
-    <h1>SIGHT Eye Health Telemetry Snapshot</h1>
+    <h1>LUMI Eye Health Telemetry Snapshot</h1>
     <div class="meta">
         Generated {{ $generatedAt->format('M d, Y g:i A') }}<br>
         Clinician: {{ $clinician->display_name ?? 'N/A' }}<br>
@@ -28,7 +28,7 @@
 
     <div class="guide">
         <strong>About this report.</strong>
-        Data originates from the child’s LUMI mobile app. During Watch sessions, on-device face tracking estimates blink rate and viewing distance; the app curates short metric windows and the parent syncs them to SIGHT.
+        Data originates from the child’s LUMI mobile app. During Watch sessions, on-device face tracking estimates blink rate and viewing distance; the app curates short metric windows and the parent syncs them to LUMI.
         Figures below summarize the <strong>rolling last 7 calendar days</strong>. This is contextual support for counseling on near-work habits—not a substitute for clinical examination or refraction.
     </div>
 

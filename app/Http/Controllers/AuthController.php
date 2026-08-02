@@ -212,7 +212,7 @@ class AuthController extends Controller
             'resetUrl' => $resetUrl,
             'expiryMinutes' => self::PASSWORD_RESET_EXPIRY_MINUTES,
         ], function ($message) use ($email) {
-            $message->to($email)->subject('SIGHT Password Reset');
+            $message->to($email)->subject('LUMI Password Reset');
         });
 
         return back()->with('status', 'If your email exists in our records, a password reset link has been sent.');

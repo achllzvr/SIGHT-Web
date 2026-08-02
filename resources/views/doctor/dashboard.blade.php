@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Clinician Portal — SIGHT</title>
+    <title>Clinician Portal — LUMI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -104,7 +104,7 @@
 @endphp
 <nav class="navbar navbar-expand-lg px-4 py-3 ds-topbar">
     <div class="container-fluid">
-        <span class="brand fs-3">SIGHT</span>
+        <span class="brand fs-3">LUMI</span>
         <div class="d-flex align-items-center gap-3">
             <span class="text-muted">{{ $doctor->display_name }}</span>
             <form method="POST" action="{{ route('logout') }}" class="m-0">
@@ -174,7 +174,7 @@
             <div class="guide-callout mb-4">
                 <h3 class="d-flex align-items-center gap-2"><i class="bi bi-info-circle"></i> How to read this visit snapshot</h3>
                 <p class="mb-2">
-                    These figures come from the child’s <strong>LUMI mobile app</strong>. During Watch sessions, on-device face tracking records blink rate and viewing distance; the app curates those samples into short metric windows and the parent syncs them to SIGHT.
+                    These figures come from the child’s <strong>LUMI mobile app</strong>. During Watch sessions, on-device face tracking records blink rate and viewing distance; the app curates those samples into short metric windows and the parent syncs them to LUMI.
                     Charts below cover the <strong>last 7 days</strong> (daily aggregates). Summary cards use that same window.
                     @if(!empty($lastSync))
                         Last parent sync: <strong>{{ \Carbon\Carbon::parse($lastSync)->format('M d, Y g:i A') }}</strong>.
@@ -300,7 +300,7 @@
                                 <div id="metricReferenceBody" class="accordion-collapse collapse" data-bs-parent="#metricReference">
                                     <div class="accordion-body px-4 pb-4">
                                         <ul class="ref-list">
-                                            <li><strong>Data source.</strong> Parent-authorized LUMI child account. Metrics are captured on the phone during Watch tracking (face present), curated locally, then synced to SIGHT when the parent is online.</li>
+                                            <li><strong>Data source.</strong> Parent-authorized LUMI child account. Metrics are captured on the phone during Watch tracking (face present), curated locally, then synced to LUMI when the parent is online.</li>
                                             <li><strong>Time window.</strong> This view always shows the rolling last 7 calendar days. Days without synced data appear as gaps on charts.</li>
                                             <li><strong>Blink rate.</strong> Estimated blinks per minute from on-device facial landmarks. Sustained low rates can increase tear-film evaporation and symptoms of digital eye strain.</li>
                                             <li><strong>Viewing distance.</strong> Estimated face-to-device distance in centimeters. The portal treats &lt; 30 cm as the harmful near-work zone (≈ &gt; 3.3 D accommodative demand).</li>

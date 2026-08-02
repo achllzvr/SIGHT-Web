@@ -31,7 +31,7 @@ class ProfessionalInvitation extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Welcome to Sight - Professional Account Created',
+            subject: 'Welcome to LUMI — Professional Account Created',
         );
     }
 

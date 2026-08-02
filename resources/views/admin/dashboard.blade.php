@@ -1252,7 +1252,7 @@
                 <div class="form-section">
                     <div>
                         <h3>Administrator Access</h3>
-                        <p class="section-subtitle">SIGHT enforces a single super-admin account. Secondary admin creation has been disabled.</p>
+                        <p class="section-subtitle">LUMI enforces a single super-admin account. Secondary admin creation has been disabled.</p>
                         <p style="margin-top: 12px; color:#6b7280;">Signed in as {{ $admin->display_name }} ({{ $admin->email }}).</p>
                     </div>
                 </div>

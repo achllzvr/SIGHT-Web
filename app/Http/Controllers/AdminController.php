@@ -293,7 +293,7 @@ class AdminController extends Controller
                 'tempPassword' => $tempPassword,
                 'loginUrl' => route('login'),
             ], function ($message) use ($professional) {
-                $message->to($professional->email)->subject('Your SIGHT Professional Account');
+                $message->to($professional->email)->subject('Your LUMI Professional Account');
             });
         } catch (\Throwable $e) {
             // Do not block account creation if mail fails.

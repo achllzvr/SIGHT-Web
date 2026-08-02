@@ -70,8 +70,9 @@
   --ds-duration-normal: 200ms;
   --ds-duration-slow: 300ms;
 
-  --ds-font-sans: 'Poppins', system-ui, Roboto, sans-serif;
-  --ds-font-mono: 'JetBrains Mono', Menlo, 'Courier New', monospace;
+  --ds-font-sans: 'ClanPro', system-ui, sans-serif;
+  --ds-font-display: 'SuperJoyful', 'ClanPro', system-ui, sans-serif;
+  --ds-font-mono: 'ClanPro', Menlo, 'Courier New', monospace;
   --ds-topbar-h: 64px;
 }
 
@@ -99,10 +100,23 @@ body {
 
 .brand,
 .ds-brand {
-  font-family: var(--ds-font-sans);
-  font-weight: 700;
-  color: var(--ds-brand-500);
-  letter-spacing: -0.02em;
+  font-family: var(--ds-font-display);
+  font-weight: 400;
+  color: #8168ab;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+h1, h2, h3,
+.h1, .h2, .h3,
+.display-1, .display-2, .display-3, .display-4, .display-5, .display-6,
+.card-title,
+.login-card .card-title,
+.bg-lumi-text {
+  font-family: var(--ds-font-display);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .panel,

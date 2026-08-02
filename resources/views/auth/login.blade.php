@@ -275,17 +275,26 @@ width: 130px;
         .login-logo {
             width: 56px;
             height: 56px;
-            background-color: var(--primary-green);
-            border-radius: 1rem;
+            background-color: #ffdcf9;
+            border: 3px solid #8168ab;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: #8168ab;
             font-size: 1.35rem;
             margin-bottom: 0.75rem;
             margin-left: 0;
             margin-right: 0;
             overflow: hidden;
+            padding: 0;
+            box-shadow: 0 3px 0 0 #8168ab;
+        }
+        .login-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .login-card .card-title {
@@ -546,7 +555,7 @@ width: 130px;
                 <div class="login-container">
                     <div class="card login-card">
                         <div class="card-header">
-                            <div class="login-logo"><img src="{{ asset('assets/sighticon.jpg') }}" alt="Sight Icon" style="width: 100%; height: 100%; object-fit: cover;"></div>
+                            <div class="login-logo"><img src="{{ asset('assets/lumi_app_icon.png') }}" alt="LUMI" style="width: 100%; height: 100%; object-fit: cover;"></div>
                             <h1 class="card-title">Welcome Back</h1>
                             <p class="card-text">Sign in to your account to continue</p>
                         </div>

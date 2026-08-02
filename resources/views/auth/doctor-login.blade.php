@@ -91,15 +91,25 @@
         .login-logo {
             width: 48px;
             height: 48px;
-            background-color: var(--primary-green);
-            border-radius: 0.5rem;
+            background-color: var(--arcade-purple-soft, #ffdcf9);
+            border: 3px solid var(--arcade-purple, #8168ab);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: #8168ab;
             font-weight: bold;
             font-size: 1.25rem;
             margin-bottom: 0.5rem;
+            overflow: hidden;
+            padding: 0;
+            box-shadow: 0 3px 0 0 #8168ab;
+        }
+        .login-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
         .login-card .card-title {
             font-size: 1.5rem;
@@ -242,7 +252,7 @@
     <div class="login-container">
         <div class="card login-card">
             <div class="card-header">
-                <div class="login-logo">E</div>
+                <div class="login-logo"><img src="{{ asset('assets/lumi_app_icon.png') }}" alt="LUMI" style="width:100%;height:100%;object-fit:cover;border-radius:12px;"></div>
                 <h1 class="card-title">Welcome Back</h1>
                 <p class="card-text">Enter your credentials to access your account</p>
             </div>

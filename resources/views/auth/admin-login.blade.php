@@ -262,14 +262,24 @@
         .login-logo {
             width: 56px;
             height: 56px;
-            background-color: var(--primary-green);
-            border-radius: 1rem;
+            background-color: var(--arcade-purple-soft, #ffdcf9);
+            border: 3px solid var(--arcade-purple, #8168ab);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: #8168ab;
             font-size: 1.35rem;
             margin-bottom: 0.75rem;
+            overflow: hidden;
+            padding: 0;
+            box-shadow: 0 3px 0 0 #8168ab;
+        }
+        .login-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .login-card .card-title {
@@ -420,7 +430,7 @@
                 <div class="login-container">
                     <div class="card login-card">
                         <div class="card-header">
-                            <div class="login-logo">A</div>
+                            <div class="login-logo"><img src="{{ asset('assets/lumi_app_icon.png') }}" alt="LUMI" style="width:100%;height:100%;object-fit:cover;border-radius:12px;"></div>
                             <h1 class="card-title">Admin Login</h1>
                             <p class="card-text">Enter your credentials to access your admin dashboard</p>
                         </div>

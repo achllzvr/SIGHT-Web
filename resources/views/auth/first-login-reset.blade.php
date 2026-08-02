@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Set New Password - SIGHT</title>
+    <title>Set New Password - LUMI</title>
     @include('partials.ds-head')
     <style>
         body { font-family: Arial, sans-serif; background: #f3f4f6; margin: 0; }
