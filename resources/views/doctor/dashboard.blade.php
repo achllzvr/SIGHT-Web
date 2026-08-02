@@ -60,6 +60,12 @@
     $hasTelemetry = !empty($dashboardData['has_data']);
     $sessionAccessedAt = $hasSession ? ($active['accessed_at'] ?? null) : null;
     $lastSync = $selectedPatient['last_sync'] ?? null;
+    $openSettings = !empty($openSettings);
+    $profilePhone = old('phone', $doctorProfile?->phone ?? $doctor->phone ?? '');
+    $profileClinic = old('clinic', $doctorProfile?->clinic ?? $doctor->clinic ?? '');
+    $profileSpecialty = old('specialty', $doctorProfile?->specialty ?? $doctor->specialty ?? '');
+    $profileLicense = old('license_number', $doctorProfile?->license_number ?? $doctor->license_number ?? '');
+    $profileLocation = old('location', $doctorProfile?->location ?? $doctor->location ?? '');
 @endphp
 <nav class="navbar navbar-expand-lg px-4 py-3 ds-topbar">
     <div class="container-fluid">
@@ -75,17 +81,20 @@
 </nav>
 
 <div class="container pb-5">
-    <ul class="nav nav-pills nav-pill mb-4 gap-2" id="portalTabs" role="tablist">
+    <ul class="nav nav-pills nav-pill mb-4" id="portalTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active rounded-pill" id="access-tab" data-bs-toggle="pill" data-bs-target="#accessPane" type="button">Patient Access</button>
+            <button class="nav-link rounded-pill {{ $openSettings ? '' : 'active' }}" id="access-tab" data-bs-toggle="pill" data-bs-target="#accessPane" type="button" role="tab" aria-controls="accessPane" aria-selected="{{ $openSettings ? 'false' : 'true' }}">Patient Access</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link rounded-pill" id="history-tab" data-bs-toggle="pill" data-bs-target="#historyPane" type="button">Viewing History</button>
+            <button class="nav-link rounded-pill" id="history-tab" data-bs-toggle="pill" data-bs-target="#historyPane" type="button" role="tab" aria-controls="historyPane" aria-selected="false">Viewing History</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill {{ $openSettings ? 'active' : '' }}" id="settings-tab" data-bs-toggle="pill" data-bs-target="#settingsPane" type="button" role="tab" aria-controls="settingsPane" aria-selected="{{ $openSettings ? 'true' : 'false' }}">Account &amp; Security</button>
         </li>
     </ul>
 
     <div class="tab-content">
-        <div class="tab-pane fade show active" id="accessPane">
+        <div class="tab-pane fade {{ $openSettings ? '' : 'show active' }}" id="accessPane" role="tabpanel" aria-labelledby="access-tab">
             @if(!$hasSession)
             <div class="row justify-content-center">
                 <div class="col-lg-7">
@@ -277,7 +286,7 @@
             @endif
         </div>
 
-        <div class="tab-pane fade" id="historyPane">
+        <div class="tab-pane fade" id="historyPane" role="tabpanel" aria-labelledby="history-tab">
             <div class="panel p-4">
                 <h2 class="h5 brand mb-3">Your viewing history</h2>
                 <p class="text-muted small mb-3">Past temporary access sessions you opened with a parent OTP/QR. Active sessions remain open until you or the parent end them.</p>
@@ -308,6 +317,107 @@
                     </table>
                 </div>
             </div>
+        </div>
+
+        <div class="tab-pane fade {{ $openSettings ? 'show active' : '' }}" id="settingsPane" role="tabpanel" aria-labelledby="settings-tab">
+            @if(session('success'))
+                <div class="alert alert-success mb-4" role="alert">{{ session('success') }}</div>
+            @endif
+
+            @if($errors->any())
+                <div class="alert alert-danger mb-4" role="alert">
+                    <ul class="mb-0 ps-3">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('doctor.settings.update') }}" class="doctor-settings-form">
+                @csrf
+
+                <div class="panel p-4 p-md-5 mb-4">
+                    <h2 class="h5 brand mb-2">Clinician Account</h2>
+                    <p class="text-muted small mb-4">Same account &amp; security controls parents get on mobile — view your email, update profile details, and reset your password.</p>
+
+                    <div class="d-flex flex-wrap align-items-center gap-3 mb-4 p-3 rounded-4 border" style="border-width: 3px !important;">
+                        <i class="bi bi-envelope" style="font-size: 1.35rem;"></i>
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold">{{ $doctor->email }}</div>
+                            <div class="small text-muted">
+                                @if($doctor->email_verified_at)
+                                    Verified {{ $doctor->email_verified_at->format('M d, Y') }}
+                                @else
+                                    Pending administrator verification
+                                @endif
+                            </div>
+                        </div>
+                        <span class="badge {{ $doctor->email_verified_at ? 'bg-success' : 'bg-secondary' }}">
+                            {{ $doctor->email_verified_at ? 'Verified' : 'Unverified' }}
+                        </span>
+                    </div>
+                    <p class="form-text otp-hint mb-0">Email is shown for reference (like parent accounts). Contact an administrator if you need to change the login email.</p>
+                </div>
+
+                <div class="panel p-4 p-md-5 mb-4">
+                    <h2 class="h5 brand mb-2">Profile</h2>
+                    <p class="text-muted small mb-4">Update the professional details from your clinician signup.</p>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="first_name">First Name</label>
+                            <input id="first_name" type="text" name="first_name" class="form-control" value="{{ old('first_name', $doctor->first_name) }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="last_name">Last Name</label>
+                            <input id="last_name" type="text" name="last_name" class="form-control" value="{{ old('last_name', $doctor->last_name) }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="phone">Phone Number</label>
+                            <input id="phone" type="text" name="phone" class="form-control" value="{{ $profilePhone }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="specialty">Specialty</label>
+                            <input id="specialty" type="text" name="specialty" class="form-control" value="{{ $profileSpecialty }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="clinic">Clinic</label>
+                            <input id="clinic" type="text" name="clinic" class="form-control" value="{{ $profileClinic }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="license_number">License Number</label>
+                            <input id="license_number" type="text" name="license_number" class="form-control" value="{{ $profileLicense }}" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" for="location">Location</label>
+                            <input id="location" type="text" name="location" class="form-control" value="{{ $profileLocation }}" placeholder="Optional">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel p-4 p-md-5 mb-4">
+                    <h2 class="h5 brand mb-2">Reset Password</h2>
+                    <p class="text-muted small mb-4">Leave blank to keep your current password. Requires your current password to confirm a change.</p>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" for="current_password">Current Password</label>
+                            <input id="current_password" type="password" name="current_password" class="form-control" autocomplete="current-password">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" for="new_password">New Password</label>
+                            <input id="new_password" type="password" name="new_password" class="form-control" autocomplete="new-password" minlength="8">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" for="new_password_confirmation">Confirm Password</label>
+                            <input id="new_password_confirmation" type="password" name="new_password_confirmation" class="form-control" autocomplete="new-password" minlength="8">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success ds-btn-primary px-4">Save Account Settings</button>
+            </form>
         </div>
     </div>
 </div>

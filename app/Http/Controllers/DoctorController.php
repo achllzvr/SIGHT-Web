@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DoctorProfile;
 use App\Services\ClinicianTelemetryReportService;
 use App\Services\PatientAccessSessionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 
 class DoctorController extends Controller
 {
@@ -22,6 +27,9 @@ class DoctorController extends Controller
             return view('doctor.pending-verification', compact('doctor'));
         }
 
+        $doctor->loadMissing('doctorProfile');
+        $doctorProfile = $doctor->doctorProfile;
+
         $active = $this->sessionService->getActiveForClinician((int) $doctor->user_id);
         $history = $this->sessionService->historyForClinician((int) $doctor->user_id);
         $accessLogs = $history['body']['data']['logs'] ?? [];
@@ -29,6 +37,18 @@ class DoctorController extends Controller
         $selectedPatient = null;
         $dashboardData = $this->formatDashboardFromTelemetry(null);
         $sessionId = null;
+
+        $openSettings = $request->boolean('settings')
+            || $request->session()->has('success')
+            || ($request->session()->get('errors') instanceof \Illuminate\Support\ViewErrorBag
+                && $request->session()->get('errors')->any());
+
+        if ($request->session()->getOldInput()) {
+            $openSettings = $openSettings || collect($request->session()->getOldInput())->keys()->intersect([
+                'first_name', 'last_name', 'phone', 'clinic', 'specialty', 'location', 'license_number',
+                'current_password', 'new_password', 'new_password_confirmation',
+            ])->isNotEmpty();
+        }
 
         if ($active) {
             $sessionId = $active['session_id'];
@@ -46,12 +66,86 @@ class DoctorController extends Controller
 
         return view('doctor.dashboard', compact(
             'doctor',
+            'doctorProfile',
             'active',
             'selectedPatient',
             'dashboardData',
             'sessionId',
-            'accessLogs'
+            'accessLogs',
+            'openSettings'
         ));
+    }
+
+    /**
+     * Update the signed-in doctor's account & professional profile.
+     * Mirrors parent Account & Security (password) plus editable profile fields from signup.
+     */
+    public function updateSettings(Request $request)
+    {
+        $doctor = Auth::user();
+
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'clinic' => 'required|string|max:255',
+            'specialty' => 'required|string|max:255',
+            'license_number' => 'required|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'current_password' => 'required_with:new_password|nullable|string',
+            'new_password' => 'nullable|string|min:8|confirmed',
+        ]);
+
+        if ($request->filled('new_password')) {
+            if (!Hash::check((string) $request->input('current_password'), $doctor->password_hash)) {
+                throw ValidationException::withMessages([
+                    'current_password' => ['The provided password does not match your current password.'],
+                ]);
+            }
+            $doctor->password_hash = Hash::make($validated['new_password']);
+        }
+
+        if (Schema::hasColumn('user', 'first_name')) {
+            $doctor->first_name = $validated['first_name'];
+        }
+        if (Schema::hasColumn('user', 'last_name')) {
+            $doctor->last_name = $validated['last_name'];
+        }
+
+        foreach (['phone', 'clinic', 'specialty', 'license_number', 'location'] as $column) {
+            if (Schema::hasColumn('user', $column) && array_key_exists($column, $validated)) {
+                $doctor->{$column} = $validated[$column] ?? '';
+            }
+        }
+
+        $doctor->save();
+
+        if (Schema::hasTable('doctor_profile')) {
+            $profile = DoctorProfile::where('user_id', $doctor->user_id)->first();
+            $profilePayload = [
+                'phone' => $validated['phone'],
+                'clinic' => $validated['clinic'],
+                'specialty' => $validated['specialty'],
+                'license_number' => $validated['license_number'],
+                'location' => $validated['location'] ?? '',
+            ];
+
+            if ($profile) {
+                $profile->fill($profilePayload);
+                $profile->save();
+            } else {
+                $nextId = ((int) DB::table('doctor_profile')->max('doctor_id')) + 1;
+                DoctorProfile::create(array_merge($profilePayload, [
+                    'doctor_id' => $nextId,
+                    'user_id' => $doctor->user_id,
+                    'is_validated' => 0,
+                ]));
+            }
+        }
+
+        return redirect()
+            ->route('doctor.dashboard', ['settings' => 1])
+            ->with('success', 'Account settings updated successfully.');
     }
 
     public function redeemAccess(Request $request)

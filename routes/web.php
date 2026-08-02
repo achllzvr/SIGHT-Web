@@ -35,6 +35,7 @@ Route::prefix('auth')->group(function () {
 
 Route::prefix('doctor')->middleware(['auth', 'role:doctor'])->group(function () {
     Route::get('/dashboard', [DoctorController::class, 'dashboard'])->name('doctor.dashboard');
+    Route::post('/settings', [DoctorController::class, 'updateSettings'])->name('doctor.settings.update');
     Route::post('/access/redeem', [DoctorController::class, 'redeemAccess'])
         ->middleware('throttle:doctor-access-redeem')
         ->name('doctor.access.redeem');
