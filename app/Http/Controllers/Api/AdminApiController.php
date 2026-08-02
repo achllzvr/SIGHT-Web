@@ -75,7 +75,11 @@ class AdminApiController extends Controller
         ]);
 
         try {
-            $this->mailer->sendProfessionalInvitation($user, $tempPassword);
+            $this->mailer->sendProfessionalVerification(
+                $user,
+                $tempPassword,
+                \App\Http\Controllers\AuthController::verificationUrlFor($user)
+            );
         } catch (\Throwable $e) {
             logger()->error('Failed to send professional account email: ' . $e->getMessage());
         }

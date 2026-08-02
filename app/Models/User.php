@@ -57,6 +57,7 @@ class User extends Authenticatable
         'failed_login_attempts',
         'locked_until',
         'email_verified_at',
+        'last_seen_at',
     ];
 
     /**
@@ -79,6 +80,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'locked_until' => 'datetime',
+            'last_seen_at' => 'datetime',
         ];
     }
 
@@ -90,6 +92,14 @@ class User extends Authenticatable
     public function getAuthPasswordName()
     {
         return 'password_hash';
+    }
+
+    /**
+     * Email address used for signed verification links.
+     */
+    public function getEmailForVerification(): string
+    {
+        return (string) $this->email;
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\SessionLimits;
 use App\Models\EyeHealthMetrics;
 use App\Services\GuardianChildAccess;
+use App\Services\UserPresenceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +16,7 @@ class SharedApiController extends Controller
 {
     public function __construct(
         private readonly GuardianChildAccess $guardianChildAccess,
+        private readonly UserPresenceService $presence,
     ) {
     }
 
@@ -63,6 +65,8 @@ class SharedApiController extends Controller
             'failed_login_attempts' => 0,
             'locked_until' => null,
         ]);
+
+        $this->presence->touch($user);
 
         $user->tokens()->where('name', 'guardian-mobile')->delete();
         $token = $user->createToken('guardian-mobile')->plainTextToken;

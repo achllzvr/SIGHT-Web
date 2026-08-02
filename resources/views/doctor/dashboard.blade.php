@@ -30,7 +30,7 @@
             height: 48px;
             border-radius: var(--ds-radius-md);
         }
-        #qr-reader { width: 100%; max-width: 360px; margin: 0 auto; }
+        #qr-reader { width: 100%; max-width: 320px; margin: 0 auto; }
         .empty-state { padding: 2rem 1.5rem; text-align: center; }
         .empty-state i { font-size: 2rem; color: var(--ds-text-disabled); }
         .otp-hint { font-size: 0.875rem; color: var(--ds-text-secondary); }
@@ -55,16 +55,19 @@
     @include('partials.ds-arcade-head')
     <style>
         /* Loaded after arcade CSS so spacing wins on Hostinger/cache */
+        .doctor-portal {
+            padding-top: 1.25rem !important;
+        }
         #portalTabs.nav {
             display: flex !important;
             flex-wrap: wrap !important;
             align-items: center !important;
             gap: 0 !important;
-            margin: 1.25rem 0 1.75rem !important;
-            padding: 0 0 0.65rem !important;
+            margin: 0 0 1rem !important;
+            padding: 0 0 8px !important; /* room for active pill hard shadow */
         }
         #portalTabs > .nav-item {
-            margin: 0 14px 10px 0 !important;
+            margin: 0 12px 0 0 !important;
             padding: 0 !important;
         }
         #portalTabs > .nav-item:last-child { margin-right: 0 !important; }
@@ -72,8 +75,8 @@
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
-            min-height: 44px !important;
-            padding: 0.65rem 1.35rem !important;
+            min-height: 42px !important;
+            padding: 0.55rem 1.25rem !important;
             border: 3px solid #d4d4d4 !important;
             border-radius: 9999px !important;
             background: #fff !important;
@@ -86,6 +89,59 @@
             border-color: #8168ab !important;
             color: #8168ab !important;
             box-shadow: 0 3px 0 0 #8168ab !important;
+        }
+        .doctor-portal .tab-content {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+        .access-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem 2rem;
+            align-items: stretch;
+            text-align: left;
+            margin-top: 1.25rem;
+        }
+        .access-split__col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-width: 0;
+        }
+        .access-split__divider {
+            display: none;
+        }
+        .access-split__label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #6b6b6b;
+            margin-bottom: 0.85rem;
+            text-align: center;
+        }
+        #qr-reader {
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+        #qr-reader video,
+        #qr-reader canvas {
+            border-radius: 16px;
+        }
+        @media (max-width: 767.98px) {
+            .access-split {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .access-split__divider {
+                display: block;
+                width: 100%;
+                border: 0;
+                border-top: 2px dashed #d4d4d4;
+                margin: 0;
+            }
         }
     </style>
 </head>
@@ -136,20 +192,29 @@
                     <div class="panel p-4 p-md-5 text-center">
                         <h2 class="brand h3 mb-2">Enter on-site access code</h2>
                         <p class="text-muted mb-2">Scan the parent QR code or type the 6-digit OTP. Access lasts until the parent or you end the session.</p>
-                        <p class="otp-hint mb-4"><i class="bi bi-clock"></i> Parent codes expire <strong>15 minutes</strong> after generation. Ask for a fresh code if yours has expired.</p>
+                        <p class="otp-hint mb-0"><i class="bi bi-clock"></i> Parent codes expire <strong>15 minutes</strong> after generation. Ask for a fresh code if yours has expired.</p>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">6-digit OTP</label>
-                            <input id="otpInput" class="form-control otp-box mx-auto" maxlength="6" inputmode="numeric" placeholder="000000" style="max-width: 260px;" aria-describedby="otpExpiryHint">
-                            <div id="otpExpiryHint" class="form-text otp-hint mt-2">Codes are single-use and valid for 15 minutes.</div>
+                        <div class="access-split">
+                            <div class="access-split__col">
+                                <div class="access-split__label">Type 6-digit OTP</div>
+                                <div class="w-100" style="max-width: 280px;">
+                                    <label class="form-label fw-semibold" for="otpInput">6-digit OTP</label>
+                                    <input id="otpInput" class="form-control otp-box mx-auto" maxlength="6" inputmode="numeric" placeholder="000000" aria-describedby="otpExpiryHint">
+                                    <div id="otpExpiryHint" class="form-text otp-hint mt-2">Codes are single-use and valid for 15 minutes.</div>
+                                </div>
+                                <button id="redeemBtn" class="btn btn-success ds-btn-primary px-4 mt-3">
+                                    View Patient Data
+                                </button>
+                            </div>
+
+                            <hr class="access-split__divider">
+
+                            <div class="access-split__col">
+                                <div class="access-split__label">Or scan QR code</div>
+                                <div id="qr-reader"></div>
+                            </div>
                         </div>
-                        <button id="redeemBtn" class="btn btn-success ds-btn-primary px-4 mb-4">
-                            View Patient Data
-                        </button>
 
-                        <hr class="my-4">
-                        <p class="text-muted small mb-3">Or scan QR code</p>
-                        <div id="qr-reader"></div>
                         <div id="redeemError" class="text-danger mt-3 small"></div>
                     </div>
                 </div>
@@ -628,6 +693,25 @@ if (hasSession && hasTelemetry && dash?.has_data) {
         options: { responsive: true, scales: { y: { min: 0, max: 100 } } },
     });
 }
+</script>
+<script>
+(function presenceHeartbeat() {
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+    if (!csrf) return;
+    const ping = () => {
+        if (document.visibilityState !== 'visible') return;
+        fetch(@json(route('doctor.presence')), {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
+            keepalive: true,
+        }).catch(() => {});
+    };
+    ping();
+    setInterval(ping, 60000);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') ping();
+    });
+})();
 </script>
 </body>
 </html>

@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\GuardianController;
+use App\Http\Controllers\PresenceController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -27,8 +28,13 @@ Route::prefix('auth')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'sendPasswordResetLink'])->name('password.email');
     Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+    Route::get('/password-updated', [AuthController::class, 'showPasswordUpdated'])->name('password.updated');
     Route::get('/first-login-password', [AuthController::class, 'showFirstLoginPasswordForm'])->name('password.first.form')->middleware('auth');
     Route::post('/first-login-password', [AuthController::class, 'updateFirstLoginPassword'])->name('password.first.update')->middleware('auth');
+
+    Route::get('/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
+    Route::get('/verification/success', [AuthController::class, 'showVerificationSuccess'])->name('verification.success');
+    Route::get('/verification/failed', [AuthController::class, 'showVerificationFailed'])->name('verification.failed');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 });
@@ -36,6 +42,7 @@ Route::prefix('auth')->group(function () {
 Route::prefix('doctor')->middleware(['auth', 'role:doctor'])->group(function () {
     Route::get('/dashboard', [DoctorController::class, 'dashboard'])->name('doctor.dashboard');
     Route::post('/settings', [DoctorController::class, 'updateSettings'])->name('doctor.settings.update');
+    Route::post('/presence', [PresenceController::class, 'ping'])->name('doctor.presence');
     Route::post('/access/redeem', [DoctorController::class, 'redeemAccess'])
         ->middleware('throttle:doctor-access-redeem')
         ->name('doctor.access.redeem');
@@ -48,6 +55,7 @@ Route::prefix('doctor')->middleware(['auth', 'role:doctor'])->group(function () 
 
 Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::post('/presence', [PresenceController::class, 'ping'])->name('admin.presence');
 
     Route::get('/professionals', [AdminController::class, 'getProfessionals']);
     Route::post('/professionals', [AdminController::class, 'addProfessional']);

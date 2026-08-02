@@ -276,14 +276,14 @@ body.lumi-arcade {
   justify-content: flex-start !important;
   gap: 0 !important;
   width: 100% !important;
-  margin: 0 0 1.75rem !important;
-  padding: 4px 0 10px !important;
+  margin: 0 0 1rem !important;
+  padding: 0 0 8px !important;
   list-style: none !important;
 }
 
 .lumi-arcade #portalTabs > .nav-item {
   display: block !important;
-  margin: 0 14px 10px 0 !important;
+  margin: 0 12px 0 0 !important;
   padding: 0 !important;
   float: none !important;
 }
@@ -658,10 +658,40 @@ body.lumi-arcade {
 }
 
 .lumi-arcade .form-section::before {
-  background: var(--arcade-purple) !important;
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  height: 0 !important;
+}
+
+.lumi-arcade .form-section__icon {
+  background: var(--arcade-purple-soft) !important;
+  border: 3px solid var(--arcade-purple) !important;
   border-radius: 12px !important;
-  border: 3px solid var(--arcade-purple);
-  box-shadow: 0 3px 0 0 var(--arcade-purple);
+  box-shadow: 0 3px 0 0 var(--arcade-purple) !important;
+  color: var(--arcade-purple) !important;
+}
+
+.lumi-arcade .presence-online {
+  background: var(--arcade-green-soft) !important;
+  color: var(--arcade-green) !important;
+  border-color: var(--arcade-green) !important;
+}
+
+.lumi-arcade .presence-standby {
+  background: #fff7e0 !important;
+  color: #b45309 !important;
+  border-color: var(--arcade-amber) !important;
+}
+
+.lumi-arcade .presence-offline {
+  background: #f3f4f6 !important;
+  color: var(--arcade-muted) !important;
+  border-color: var(--arcade-outline) !important;
 }
 
 .lumi-arcade .modal-footer button,

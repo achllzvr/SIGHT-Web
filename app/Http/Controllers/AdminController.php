@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\ChildProfile;
 use App\Models\DoctorProfile;
 use App\Models\AuditLog;
+use App\Services\UserPresenceService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +18,10 @@ use Illuminate\Validation\ValidationException;
 
 class AdminController extends Controller
 {
+    public function __construct(
+        private readonly UserPresenceService $presence,
+    ) {
+    }
     /**
      * Build the base doctors query with optional search/status filters.
      */
@@ -84,6 +89,8 @@ class AdminController extends Controller
             $patientCount = \App\Models\PatientAccessLog::where('clinician_id', $profile->user_id)->count();
         }
 
+        $presence = $this->presence->summarize($professional);
+
         return [
             'id' => $professional->user_id,
             'name' => $this->displayName($professional),
@@ -99,7 +106,9 @@ class AdminController extends Controller
             'status' => strtolower($professional->status ?? 'active'),
             'created_at' => $professional->created_at ? $professional->created_at->format('M d, Y') : null,
             'patients' => $patientCount,
-            'last_active' => 'Never',
+            'last_active' => $presence['last_active'],
+            'presence_status' => $presence['presence_status'],
+            'presence_label' => $presence['presence_label'],
             'joined_date' => $professional->created_at ? $professional->created_at->format('M d, Y') : 'N/A',
         ];
     }
@@ -292,6 +301,7 @@ class AdminController extends Controller
                 'email' => $professional->email,
                 'tempPassword' => $tempPassword,
                 'loginUrl' => route('login'),
+                'verificationUrl' => AuthController::verificationUrlFor($professional),
             ], function ($message) use ($professional) {
                 $message->to($professional->email)->subject('Your LUMI Professional Account');
             });
@@ -312,24 +322,7 @@ class AdminController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Professional added successfully. Login credentials sent by email.',
-            'professional' => [
-                'id' => $professional->user_id,
-                'name' => $this->displayName($professional),
-                'first_name' => $professional->first_name ?? $validated['first_name'],
-                'last_name' => $professional->last_name ?? $validated['last_name'],
-                'email' => $professional->email,
-                'phone' => $professional->doctorProfile->phone ?? $validated['phone'],
-                'clinic' => $professional->doctorProfile->clinic ?? $validated['clinic'],
-                'specialty' => $professional->doctorProfile->specialty ?? $validated['specialty'],
-                'license_number' => $professional->doctorProfile->license_number ?? $validated['license_number'],
-                'is_verified' => false,
-                'location' => $professional->doctorProfile->location ?? $validated['location'],
-                'status' => strtolower($professional->status ?? 'pending'),
-                'patients' => $patientCount,
-                'last_active' => 'Just now',
-                'joined_date' => $professional->created_at ? $professional->created_at->format('M d, Y') : now()->format('M d, Y'),
-                'created_at' => $professional->created_at ? $professional->created_at->format('M d, Y') : now()->format('M d, Y'),
-            ],
+            'professional' => $this->formatProfessional($professional),
         ]);
     }
 
@@ -399,23 +392,7 @@ class AdminController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Professional updated successfully',
-            'professional' => [
-                'id' => $professional->user_id,
-                'name' => $this->displayName($professional),
-                'first_name' => $professional->first_name ?? $validated['first_name'],
-                'last_name' => $professional->last_name ?? $validated['last_name'],
-                'email' => $professional->email,
-                'phone' => $professional->doctorProfile->phone ?? $validated['phone'],
-                'clinic' => $professional->doctorProfile->clinic ?? $validated['clinic'],
-                'specialty' => $professional->doctorProfile->specialty ?? $validated['specialty'],
-                'license_number' => $professional->doctorProfile->license_number ?? $validated['license_number'],
-                'location' => $professional->doctorProfile->location ?? $validated['location'],
-                'status' => strtolower($professional->status ?? $validated['status']),
-                'is_verified' => !is_null($professional->email_verified_at),
-                'patients' => $patientCount,
-                'last_active' => 'Never',
-                'joined_date' => $professional->created_at ? $professional->created_at->format('M d, Y') : 'N/A',
-            ],
+            'professional' => $this->formatProfessional($professional),
         ]);
     }
 

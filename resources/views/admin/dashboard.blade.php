@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script defer src="{{ asset('assets/js/alpine.min.js') }}"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     @include('partials.ds-head')
     <style>
         * {
@@ -500,16 +501,28 @@
             margin-bottom: 24px;
             display: flex;
             gap: 20px;
+            align-items: flex-start;
         }
 
         .form-section::before {
-            content: '';
+            content: none;
+            display: none;
+        }
+
+        .form-section__icon {
             min-width: 50px;
             width: 50px;
             height: 50px;
-            background: var(--ds-brand-500);
-            border-radius: 8px;
+            border-radius: 12px;
             flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffdcf9;
+            border: 3px solid #8168ab;
+            box-shadow: 0 3px 0 0 #8168ab;
+            color: #8168ab;
+            font-size: 1.35rem;
         }
 
         .form-section h3 {
@@ -521,6 +534,39 @@
 
         .form-section > div {
             flex: 1;
+        }
+
+        .presence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 9999px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .presence-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        .presence-online {
+            background: #c8e8b7;
+            color: #62b239;
+            border: 1px solid #62b239;
+        }
+        .presence-standby {
+            background: #fff7e0;
+            color: #b45309;
+            border: 1px solid #ffaf03;
+        }
+        .presence-offline {
+            background: #f3f4f6;
+            color: #6b7280;
+            border: 1px solid #d4d4d4;
         }
 
         .section-subtitle {
@@ -1095,6 +1141,7 @@
                                     <td>
                                         <div class="last-active-time">{{ $pro['last_active'] ?? 'Never' }}</div>
                                         <div class="joined-date">Joined: {{ $pro['joined_date'] ?? 'N/A' }}</div>
+                                        <span class="presence-badge presence-{{ $pro['presence_status'] ?? 'offline' }}">{{ $pro['presence_label'] ?? 'Offline' }}</span>
                                     </td>
                                     <td>
                                         <div class="action-buttons"><span class="action-btn edit">Edit</span></div>
@@ -1143,6 +1190,11 @@
                                     <td>
                                         <div class="last-active-time" x-text="pro.last_active"></div>
                                         <div class="joined-date" x-text="'Joined: ' + pro.joined_date"></div>
+                                        <span
+                                            class="presence-badge"
+                                            :class="'presence-' + (pro.presence_status || 'offline')"
+                                            x-text="pro.presence_label || 'Offline'"
+                                        ></span>
                                     </td>
                                     <td>
                                         <div class="action-buttons">
@@ -1204,6 +1256,7 @@
             <form class="settings-form" action="{{ url('/admin/settings') }}" method="POST">
                 @csrf
                 <div class="form-section">
+                    <div class="form-section__icon" aria-hidden="true"><i class="bi bi-person-gear"></i></div>
                     <div>
                         <h3>Account Settings</h3>
                         <p class="section-subtitle">Manage your account information</p>
@@ -1229,6 +1282,7 @@
                 </div>
 
                 <div class="form-section">
+                    <div class="form-section__icon" aria-hidden="true"><i class="bi bi-shield-lock"></i></div>
                     <div>
                         <h3>Change Password</h3>
                         <p class="section-subtitle">Update your password regularly</p>
@@ -1250,6 +1304,7 @@
                 </div>
 
                 <div class="form-section">
+                    <div class="form-section__icon" aria-hidden="true"><i class="bi bi-key"></i></div>
                     <div>
                         <h3>Administrator Access</h3>
                         <p class="section-subtitle">LUMI enforces a single super-admin account. Secondary admin creation has been disabled.</p>
@@ -1662,6 +1717,28 @@
 
                 init() {
                     this.filteredProfessionals = [...this.professionals];
+                    this.pingPresence();
+                    this.loadProfessionals(this.pagination.current_page || 1);
+                    setInterval(() => this.pingPresence(), 60000);
+                    setInterval(() => {
+                        if (document.visibilityState === 'visible') {
+                            this.loadProfessionals(this.pagination.current_page || 1);
+                        }
+                    }, 30000);
+                },
+
+                async pingPresence() {
+                    try {
+                        await fetch(@json(route('admin.presence')), {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': this.csrfToken,
+                            },
+                        });
+                    } catch (e) {
+                        // Non-blocking heartbeat
+                    }
                 }
             };
         }

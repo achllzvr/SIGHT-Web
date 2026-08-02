@@ -23,7 +23,7 @@
                             <p style="margin:0 0 14px;font-size:15px;">Hello {{ $name }},</p>
                             <p style="margin:0 0 16px;font-size:15px;color:#6b6b6b;">
                                 Your clinician account has been created.
-                                Use the temporary password below for your first login.
+                                Verify your email first, then use the temporary password below for your first login.
                             </p>
 
                             <div style="background:#f7fbf4;border:3px solid #d4d4d4;border-radius:16px;padding:14px;margin:0 0 18px;">
@@ -37,8 +37,16 @@
                                 On your first successful login, you will be required to set a new password before accessing your dashboard.
                             </p>
 
+                            @if(!empty($verificationUrl))
+                            <p style="text-align:center;margin:0 0 14px;">
+                                <a href="{{ $verificationUrl }}" style="display:inline-block;background:#ffdcf9;color:#8168ab;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:0.08em;padding:14px 28px;border-radius:9999px;border:4px solid #8168ab;box-shadow:0 4px 0 0 #8168ab;text-transform:uppercase;">
+                                    Verify Email
+                                </a>
+                            </p>
+                            @endif
+
                             <p style="text-align:center;margin:0;">
-                                <a href="{{ $loginUrl }}" style="display:inline-block;background:#ffdcf9;color:#8168ab;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:0.08em;padding:14px 28px;border-radius:9999px;border:4px solid #8168ab;box-shadow:0 4px 0 0 #8168ab;text-transform:uppercase;">
+                                <a href="{{ $loginUrl }}" style="display:inline-block;background:#fff;color:#62b239;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:0.08em;padding:14px 28px;border-radius:9999px;border:4px solid #62b239;box-shadow:0 4px 0 0 #62b239;text-transform:uppercase;">
                                     Go to Login
                                 </a>
                             </p>

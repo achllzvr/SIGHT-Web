@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\DoctorProfile;
+use App\Services\UserPresenceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -16,6 +17,11 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     private const PASSWORD_RESET_EXPIRY_MINUTES = 60;
+
+    public function __construct(
+        private readonly UserPresenceService $presence,
+    ) {
+    }
 
     /**
      * Show the unified login form
@@ -41,12 +47,13 @@ class AuthController extends Controller
             
             // Get the authenticated user and check their role
             $user = Auth::user();
+            $this->presence->touch($user);
             
             // Check verification status
             if (is_null($user->email_verified_at)) {
                 Auth::logout();
                 $request->session()->invalidate();
-                return redirect()->route('login')->with('info', 'Your account is pending verification by an administrator.');
+                return redirect()->route('login')->with('info', 'Please verify your email using the link we sent you before signing in.');
             }
 
             if ($this->requiresFirstLoginReset($user)) {
@@ -98,15 +105,24 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        // Attempt to authenticate the user as a doctor
-        if (Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password'], 'role' => 'doctor'])) {
-            $request->session()->regenerate();
-
+        // Case-insensitive role match (prod may store "Doctor")
+        if (Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']])) {
             $user = Auth::user();
+            if (strtolower((string) $user->role) !== 'doctor') {
+                Auth::logout();
+                $request->session()->invalidate();
+                throw ValidationException::withMessages([
+                    'email' => 'Invalid credentials.',
+                ]);
+            }
+
+            $request->session()->regenerate();
+            $this->presence->touch($user);
+
             if (is_null($user->email_verified_at)) {
                 Auth::logout();
                 $request->session()->invalidate();
-                return redirect()->route('doctor.login')->with('info', 'Your account is pending verification by an administrator.');
+                return redirect()->route('doctor.login')->with('info', 'Please verify your email using the link we sent you before signing in.');
             }
             if ($this->requiresFirstLoginReset($user)) {
                 return redirect()->route('password.first.form');
@@ -130,11 +146,19 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        // Attempt to authenticate the user as an admin
-        if (Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password'], 'role' => 'admin'])) {
-            $request->session()->regenerate();
-
+        if (Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']])) {
             $user = Auth::user();
+            if (strtolower((string) $user->role) !== 'admin') {
+                Auth::logout();
+                $request->session()->invalidate();
+                throw ValidationException::withMessages([
+                    'email' => 'Invalid credentials.',
+                ]);
+            }
+
+            $request->session()->regenerate();
+            $this->presence->touch($user);
+
             if ($this->requiresFirstLoginReset($user)) {
                 return redirect()->route('password.first.form');
             }
@@ -152,6 +176,11 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        $user = Auth::user();
+        if ($user) {
+            $this->presence->markOffline($user);
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -272,7 +301,86 @@ class AuthController extends Controller
 
         DB::table('password_reset_tokens')->where('email', $email)->delete();
 
-        return redirect()->route('login')->with('status', 'Your password has been reset. You can now log in.');
+        return redirect()
+            ->route('password.updated')
+            ->with('password_reset_success', true);
+    }
+
+    /**
+     * Post-reset success page (shows modal, then redirects to login).
+     */
+    public function showPasswordUpdated()
+    {
+        if (!session('password_reset_success')) {
+            return redirect()->route('login');
+        }
+
+        return view('auth.reset-password', [
+            'token' => '',
+            'email' => '',
+        ]);
+    }
+
+    /**
+     * Signed email verification link for clinicians/admins.
+     */
+    public function verifyEmail(Request $request, int $id, string $hash)
+    {
+        if (!$request->hasValidSignature()) {
+            return view('auth.verification-failed', [
+                'message' => 'This verification link is invalid or has expired.',
+            ]);
+        }
+
+        $user = User::find($id);
+        if (!$user || !hash_equals(sha1($user->getEmailForVerification()), (string) $hash)) {
+            return view('auth.verification-failed', [
+                'message' => 'This verification link does not match any account.',
+            ]);
+        }
+
+        if (is_null($user->email_verified_at)) {
+            $user->email_verified_at = now();
+            if (Schema::hasColumn('user', 'status') && strtolower((string) ($user->status ?? '')) === 'pending') {
+                $user->status = 'active';
+            }
+            $user->save();
+
+            if (Schema::hasTable('doctor_profile') && strtolower((string) $user->role) === 'doctor') {
+                $profile = DoctorProfile::where('user_id', $user->user_id)->first();
+                if ($profile) {
+                    $profile->is_validated = 1;
+                    $profile->save();
+                }
+            }
+        }
+
+        return view('auth.verification-success');
+    }
+
+    public function showVerificationSuccess()
+    {
+        return view('auth.verification-success');
+    }
+
+    public function showVerificationFailed()
+    {
+        return view('auth.verification-failed');
+    }
+
+    /**
+     * Build a temporary signed verification URL for a user.
+     */
+    public static function verificationUrlFor(User $user): string
+    {
+        return \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addDays(2),
+            [
+                'id' => $user->user_id,
+                'hash' => sha1($user->getEmailForVerification()),
+            ]
+        );
     }
 
     /**
