@@ -133,15 +133,17 @@ class MetricsService
             ->map(fn ($ts) => $ts->toDateTimeString())
             ->toArray();
 
-        // Process each metric, deduplicating by timestamp
+        // Process each metric, deduplicating by timestamp (DB + within this request)
+        $seenInBatch = [];
         foreach ($metricsBatch as $metric) {
             $timestamp = $metric['timestamp'];
 
-            // Skip if this exact timestamp already exists
-            if (in_array($timestamp, $existingMetrics, true)) {
+            // Skip if this exact timestamp already exists online or earlier in this payload
+            if (isset($seenInBatch[$timestamp]) || in_array($timestamp, $existingMetrics, true)) {
                 $skipped++;
                 continue;
             }
+            $seenInBatch[$timestamp] = true;
 
             $records[] = [
                 'child_id' => $childId,
