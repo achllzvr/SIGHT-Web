@@ -81,7 +81,7 @@
 </nav>
 
 <div class="container pb-5">
-    <ul class="nav nav-pills nav-pill mb-4" id="portalTabs" role="tablist">
+    <ul class="nav nav-pills nav-pill" id="portalTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link rounded-pill {{ $openSettings ? '' : 'active' }}" id="access-tab" data-bs-toggle="pill" data-bs-target="#accessPane" type="button" role="tab" aria-controls="accessPane" aria-selected="{{ $openSettings ? 'false' : 'true' }}">Patient Access</button>
         </li>
