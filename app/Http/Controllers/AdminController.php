@@ -311,8 +311,7 @@ class AdminController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Professional added successfully.',
-            'temp_password' => $tempPassword,
+            'message' => 'Professional added successfully. Login credentials sent by email.',
             'professional' => [
                 'id' => $professional->user_id,
                 'name' => $this->displayName($professional),

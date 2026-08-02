@@ -4,28 +4,32 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\AdminProfile;
 use App\Models\DoctorProfile;
+use App\Services\PhpMailerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AdminApiController extends Controller
 {
+    public function __construct(
+        private readonly PhpMailerService $mailer,
+    ) {
+    }
+
     /**
      * GET /api/web/admin/analytics
-     * Returns system-wide active users and platform health
      */
     public function getAnalytics()
     {
-        // Verify admin role
-        if (auth()->user()->role !== 'Admin') {
+        if (strtolower((string) auth()->user()->role) !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $activeDoctors = User::where('role', 'Doctor')->count();
-        $activeGuardians = User::where('role', 'Guardian')->count();
-        $activeChildren = User::where('role', 'Child')->count();
-        $admins = User::where('role', 'Admin')->count();
+        $activeDoctors = User::whereRaw('LOWER(role) = ?', ['doctor'])->count();
+        $activeGuardians = User::whereRaw('LOWER(role) = ?', ['guardian'])->count();
+        $activeChildren = User::whereRaw('LOWER(role) = ?', ['child'])->count();
+        $admins = User::whereRaw('LOWER(role) = ?', ['admin'])->count();
 
         return response()->json([
             'platform_health' => [
@@ -34,18 +38,16 @@ class AdminApiController extends Controller
                 'guardians' => $activeGuardians,
                 'children' => $activeChildren,
                 'admins' => $admins,
-            ]
+            ],
         ], 200);
     }
 
     /**
      * POST /api/web/admin/create-professional
-     * Provisions a verified doctor account directly
      */
     public function createProfessional(Request $request)
     {
-        // Verify admin role
-        if (auth()->user()->role !== 'Admin') {
+        if (strtolower((string) auth()->user()->role) !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -54,27 +56,32 @@ class AdminApiController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:user,email',
             'license_number' => 'required|string|unique:doctor_profile,license_number',
-            'password' => 'required|string|min:8',
         ]);
 
-        // Create doctor user
+        $tempPassword = Str::random(12);
+
         $user = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
-            'password_hash' => Hash::make($request->password),
+            'password_hash' => Hash::make($tempPassword),
             'role' => 'Doctor',
         ]);
 
-        // Create doctor profile (pre-validated)
         $doctor = DoctorProfile::create([
             'user_id' => $user->user_id,
             'license_number' => $request->license_number,
-            'is_validated' => 1, // Admin-created doctors are automatically validated
+            'is_validated' => 1,
         ]);
 
+        try {
+            $this->mailer->sendProfessionalInvitation($user, $tempPassword);
+        } catch (\Throwable $e) {
+            logger()->error('Failed to send professional account email: ' . $e->getMessage());
+        }
+
         return response()->json([
-            'message' => 'Professional account created successfully',
+            'message' => 'Professional account created successfully. Temporary password sent by email.',
             'doctor' => [
                 'doctor_id' => $doctor->doctor_id,
                 'user_id' => $user->user_id,
@@ -83,8 +90,8 @@ class AdminApiController extends Controller
                 'display_name' => $user->display_name,
                 'email' => $user->email,
                 'license_number' => $doctor->license_number,
-                'is_validated' => (bool)$doctor->is_validated,
-            ]
+                'is_validated' => (bool) $doctor->is_validated,
+            ],
         ], 201);
     }
 }

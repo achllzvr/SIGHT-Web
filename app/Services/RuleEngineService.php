@@ -126,8 +126,23 @@ class RuleEngineService
         ], null, 201);
     }
 
-    public function updateChildLimits(int $childId, array $payload): array
+    public function updateChildLimits(int $authUserId, int $childId, array $payload): array
     {
+        $guardian = GuardianProfile::where('user_id', $authUserId)->first();
+
+        if (!$guardian) {
+            return $this->response('error', 'Guardian profile not found', null, ['guardian' => ['Guardian profile not found']], 404);
+        }
+
+        $isOwner = DB::table('guardian_child_link')
+            ->where('guardian_id', $guardian->guardian_id)
+            ->where('child_id', $childId)
+            ->exists();
+
+        if (!$isOwner) {
+            return $this->response('error', 'Unauthorized', null, ['authorization' => ['Unauthorized']], 403);
+        }
+
         $limits = SessionLimits::where('child_id', $childId)->first();
 
         if (!$limits) {

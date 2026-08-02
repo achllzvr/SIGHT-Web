@@ -6,19 +6,20 @@
     <title>Sign In - Eye Health Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    @include('partials.ds-head')
     <style>
         :root {
             --lumi-green: #eef9f1;
             --lumi-mint: #dcfce7;
             --lumi-purple: #a855f7;
             --bg-white: #ffffff;
-            --text-main: #1f2937;
-            --primary-green: #527267;
+            --text-main: var(--ds-text);
+            --primary-green: var(--ds-brand-500);
         }
 
         body {
-            font-family: 'Fredoka', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: var(--ds-font-sans);
             background-color: var(--bg-white);
             color: var(--text-main);
             margin: 0;
@@ -30,9 +31,9 @@
             position: relative;
             min-height: 100vh;
             background:
-                radial-gradient(circle at 90% 50%, rgba(42, 131, 68, 0.2) 0%, transparent 35%),
-                radial-gradient(circle at 50% 50%, #E4FFD8 0%, transparent 60%),
-                radial-gradient(circle at 15% 20%, rgba(251, 207, 232, 0.6) 0%, transparent 20%);
+                radial-gradient(circle at 90% 50%, rgba(91, 154, 122, 0.14) 0%, transparent 35%),
+                radial-gradient(circle at 50% 50%, #ecfdf5 0%, transparent 60%),
+                radial-gradient(circle at 15% 20%, rgba(245, 158, 11, 0.12) 0%, transparent 20%);
             display: flex;
             align-items: flex-start;
             justify-content: center;
@@ -47,7 +48,7 @@
             top: 0;
             width: 100%;
             height: 620px;
-            background: #F5FFF7;
+            background: #f8fafc;
             border-radius: 0 0 50% 50%;
             z-index: -2;
             pointer-events: none;
@@ -71,10 +72,10 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-family: 'Fredoka', sans-serif;
+            font-family: var(--ds-font-sans), sans-serif;
             font-size: 30vw;
             font-weight: 900;
-            color: #E4FFD8;
+            color: #ecfdf5;
             z-index: -1;
             letter-spacing: 25px;
             user-select: none;
@@ -132,7 +133,7 @@
         .phone-character {
             width: 100%;
             display: block;
-            border-radius: 2.5rem;
+            border-radius: var(--ds-radius-xl);
             transition: transform 0.25s ease, filter 0.25s ease;
             will-change: transform;
             filter: drop-shadow(0 30px 70px rgba(0, 0, 0, 0.12));
@@ -219,11 +220,9 @@ width: 130px;
 
         .login-card {
             background: #ffffff;
-            border: 1px solid rgba(82, 114, 103, 0.08);
-            border-radius: 2.5rem;
-            box-shadow:
-                0 14px 40px rgba(15, 54, 41, 0.08),
-                0 2px 6px rgba(15, 54, 41, 0.04);
+            border: 1px solid var(--ds-border);
+            border-radius: var(--ds-radius-xl);
+            box-shadow: var(--ds-shadow-card);
             overflow: hidden;
             min-height: 620px;
             max-height: 620px;
@@ -231,14 +230,12 @@ width: 130px;
             flex-direction: column;
             position: relative;
             animation: cardFadeIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
-            transition: transform 0.28s ease, box-shadow 0.28s ease;
+            transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .login-card:hover {
-            transform: translateY(-6px);
-            box-shadow:
-                0 22px 56px rgba(15, 54, 41, 0.11),
-                0 8px 18px rgba(15, 54, 41, 0.06);
+            transform: translateY(-2px);
+            box-shadow: var(--ds-shadow-card-hover);
         }
 
         .login-card .card-body {
@@ -258,7 +255,7 @@ width: 130px;
             background: rgba(220, 38, 38, 0.08);
             border: 1px solid rgba(220, 38, 38, 0.15);
             color: #b91c1c;
-            border-radius: 1.5rem;
+            border-radius: var(--ds-radius-md);
             padding: 1.25rem;
             font-size: 0.95rem;
             margin-bottom: 1.5rem;
@@ -294,12 +291,12 @@ width: 130px;
         .login-card .card-title {
             font-size: 2rem;
             font-weight: 800;
-            color: #141c2a;
+            color: var(--ds-text);
             margin-bottom: 0.5rem;
         }
 
         .login-card .card-text {
-            color: #4b525f;
+            color: var(--ds-text-secondary);
             font-size: 0.95rem;
             margin: 0;
         }
@@ -368,9 +365,9 @@ width: 130px;
         }
 
         .form-control {
-            border: 2px solid rgba(16, 185, 129, 0.18);
-            border-radius: 1.5rem;
-            height: 52px;
+            border: 1px solid var(--ds-border);
+            border-radius: var(--ds-radius-md);
+            height: 40px;
             padding: 0 1.25rem;
             font-size: 0.95rem;
             background: rgba(255,255,255,0.9);
@@ -379,9 +376,8 @@ width: 130px;
 
         .form-control:focus {
             border-color: var(--primary-green);
-            box-shadow: 0 0 0 0.2rem rgba(82, 114, 103, 0.12);
+            box-shadow: 0 0 0 1px var(--ds-surface), 0 0 0 3px var(--ds-brand-500);
             outline: none;
-            transform: translateY(-1px);
         }
 
         .form-label {
@@ -410,19 +406,27 @@ width: 130px;
             width: 100%;
             background-color: var(--primary-green);
             color: white;
-            font-weight: 700;
-            border-radius: 999px;
-            padding: 0.95rem 1.5rem;
+            font-weight: 600;
+            border-radius: var(--ds-radius-md);
+            padding: 0.5rem 1rem;
+            min-height: 40px;
             border: none;
-            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
-            box-shadow:
-                0 8px 18px rgba(82, 114, 103, 0.16),
-                0 2px 6px rgba(82, 114, 103, 0.08);
+            transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--ds-shadow-card);
         }
 
         .btn-signin:hover {
-            background-color: #405b4d;
-            transform: translateY(-1px);
+            background-color: var(--ds-brand-600);
+            box-shadow: var(--ds-shadow-card-hover);
+        }
+
+        .btn-signin:active {
+            transform: scale(0.97);
+        }
+
+        .btn-signin:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--ds-surface), 0 0 0 4px var(--ds-brand-500);
         }
 
         .button-container {
@@ -478,7 +482,7 @@ width: 130px;
             .login-card {
                 min-height: auto;
                 max-height: none;
-                border-radius: 2rem;
+                border-radius: var(--ds-radius-xl);
             }
 
             .login-card .card-header {

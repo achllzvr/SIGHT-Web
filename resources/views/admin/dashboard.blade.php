@@ -6,7 +6,8 @@
     <title>Admin Dashboard</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script defer src="{{ asset('assets/js/alpine.min.js') }}"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    @include('partials.ds-head')
     <style>
         * {
             margin: 0;
@@ -15,12 +16,12 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: var(--ds-font-sans);
             background: 
-                radial-gradient(circle at 90% 50%, rgba(42, 131, 68, 0.2) 0%, transparent 35%),
-                radial-gradient(circle at 50% 50%, #E4FFD8 0%, transparent 60%),
-                radial-gradient(circle at 15% 20%, rgba(251, 207, 232, 0.6) 0%, transparent 20%);
-            color: #1f2937;
+                radial-gradient(circle at 90% 50%, rgba(91, 154, 122, 0.14) 0%, transparent 35%),
+                radial-gradient(circle at 50% 50%, #ecfdf5 0%, transparent 60%),
+                radial-gradient(circle at 15% 20%, rgba(245, 158, 11, 0.12) 0%, transparent 20%);
+            color: var(--ds-text);
             position: relative;
             overflow: hidden;
         }
@@ -32,8 +33,8 @@
             transform: translate(-50%, -50%);
             font-size: 30vw;
             font-weight: 900;
-            font-family: 'Fredoka', sans-serif;
-            color: #E4FFD8;
+            font-family: var(--ds-font-sans), sans-serif;
+            color: #ecfdf5;
             z-index: -1;
             letter-spacing: 25px;
             user-select: none;
@@ -48,7 +49,7 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 60px 60px;
+            padding: 48px 48px;
         }
 
         .tabs {
@@ -56,19 +57,19 @@
             display: flex;
             justify-content: left;
             width: 100%;
-            gap: 5px;
-            margin-bottom: 30px;
+            gap: 8px;
+            margin-bottom: 32px;
             background: white;
             padding: 10px;
-            border-radius: 32px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-radius: var(--ds-radius-xl);
+            box-shadow: var(--ds-shadow-card-hover);
         }
 
         .tab-indicator {
             position: absolute;
-            background: #527267;
-            border-radius: 24px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--ds-brand-500);
+            border-radius: var(--ds-radius-lg);
+            transition: all 200ms ease-out;
             z-index: 0;
         }
 
@@ -82,8 +83,8 @@
             color: #9ca3af;
             border: none;
             background: transparent;
-            border-radius: 24px;
-            transition: color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: var(--ds-radius-lg);
+            transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .tab.active {
@@ -91,7 +92,7 @@
         }
 
         .tab:hover {
-            color: #1f2937;
+            color: var(--ds-text);
         }
 
         .content-section {
@@ -114,13 +115,13 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 24px;
-            margin-bottom: 30px;
+            margin-bottom: 32px;
         }
 
         .stat-card {
             background: white;
             padding: 30px 24px;
-            border-radius: 16px;
+            border-radius: var(--ds-radius-lg);
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             min-height: 140px;
             display: flex;
@@ -138,12 +139,12 @@
         .stat-value {
             font-size: 32px;
             font-weight: 700;
-            color: #1f2937;
+            color: var(--ds-text);
         }
 
         .professionals-panel {
             background: white;
-            border-radius: 12px;
+            border-radius: var(--ds-radius-lg);
             padding: 24px;
             box-shadow: 0 2px 16px rgba(0,0,0,0.06);
         }
@@ -175,7 +176,7 @@
             color: white;
             padding: 10px 18px;
             border: none;
-            border-radius: 20px;
+            border-radius: var(--ds-radius-lg);
             cursor: pointer;
             font-size: 14px;
             font-weight: 600;
@@ -198,18 +199,18 @@
         .filter-btn {
             padding: 8px 18px;
             border: none;
-            border-radius: 16px;
+            border-radius: var(--ds-radius-lg);
            
             cursor: pointer;
             font-size: 13px;
             transition: all 0.2s;
             background: #f7faf9;
-            color: #527267;
-            border: 1px solid #527267;
+            color: var(--ds-brand-500);
+            border: 1px solid var(--ds-brand-500);
         }
 
         .filter-btn.active {
-            background: #527267;
+            background: var(--ds-brand-500);
             color: white;
         }
 
@@ -246,7 +247,7 @@
 
         .professional-name {
             font-weight: 700;
-            color: #1f2937;
+            color: var(--ds-text);
             font-size: 15px;
         }
 
@@ -272,7 +273,7 @@
         }
 
         .clinic-name {
-            color: #1f2937;
+            color: var(--ds-text);
             font-weight: 500;
         }
 
@@ -283,7 +284,7 @@
         }
 
         .last-active-time {
-            color: #1f2937;
+            color: var(--ds-text);
             font-weight: 500;
             font-size: 13px;
         }
@@ -295,7 +296,7 @@
         }
 
         .patient-badge {
-            background: #527267;
+            background: var(--ds-brand-500);
             border-radius: 15px;
             padding: 8px 15px;
             font-weight: 600;
@@ -351,7 +352,7 @@
         }
 
         .action-btn.edit:hover {
-            color: #1f2937;
+            color: var(--ds-text);
         }
 
         .action-btn.delete {
@@ -381,7 +382,7 @@
 
         .modal {
             background: white;
-            border-radius: 12px;
+            border-radius: var(--ds-radius-lg);
             padding: 24px;
             min-width: 500px;
             max-width: 90%;
@@ -397,7 +398,7 @@
         .modal-header h3 {
             font-size: 18px;
             font-weight: 700;
-            color: #1f2937;
+            color: var(--ds-text);
         }
 
         .modal-body {
@@ -494,7 +495,7 @@
         .form-section {
             background: #FCFFFD;
             padding: 30px;
-            border-radius: 12px;
+            border-radius: var(--ds-radius-lg);
             box-shadow: 0 2px 16px rgba(0,0,0,0.06);
             margin-bottom: 24px;
             display: flex;
@@ -506,7 +507,7 @@
             min-width: 50px;
             width: 50px;
             height: 50px;
-            background: #527267;
+            background: var(--ds-brand-500);
             border-radius: 8px;
             flex-shrink: 0;
         }
@@ -515,7 +516,7 @@
             font-size: 16px;
             font-weight: 700;
             margin-bottom: 4px;
-            color: #1f2937;
+            color: var(--ds-text);
         }
 
         .form-section > div {
@@ -546,7 +547,7 @@
             display: block;
             font-weight: 600;
             font-size: 14px;
-            color: #1f2937;
+            color: var(--ds-text);
             margin: 0;
             margin-bottom: 4px;
         }
@@ -578,7 +579,7 @@
             justify-content: space-between;
             padding: 15px 20px;
             background: #F0FAF8;
-            border-radius: 12px;
+            border-radius: var(--ds-radius-lg);
             margin-bottom: 10px;
         }
 
@@ -646,7 +647,7 @@
             background: #dcfce7;
             color: #166534;
             padding: 6px 14px;
-            border-radius: 16px;
+            border-radius: var(--ds-radius-lg);
             font-size: 12px;
             font-weight: 600;
         }
@@ -688,7 +689,7 @@
             bottom: 0;
             background: #cbd5e1;
             transition: .3s;
-            border-radius: 20px;
+            border-radius: var(--ds-radius-lg);
         }
 
         .v-slider:before {
@@ -704,7 +705,7 @@
         }
 
         input:checked + .v-slider {
-            background: #527267;
+            background: var(--ds-brand-500);
         }
 
         input:checked + .v-slider:before {
@@ -716,11 +717,11 @@
         }
 
         .save-button {
-            background: #527267;
+            background: var(--ds-brand-500);
             color: white;
             padding: 12px 32px;
             border: none;
-            border-radius: 24px;
+            border-radius: var(--ds-radius-lg);
             cursor: pointer;
             font-size: 14px;
             font-weight: 600;
@@ -741,11 +742,11 @@
         }
 
         .add-admin-btn {
-            background: #527267;
+            background: var(--ds-brand-500);
             color: white;
             padding: 10px 20px;
             border: none;
-            border-radius: 24px;
+            border-radius: var(--ds-radius-lg);
             cursor: pointer;
             font-size: 13px;
             font-weight: 600;
@@ -1263,19 +1264,19 @@
         <div id="audit-logs" class="content-section">
             <div class="professionals-panel">
                 <div style="margin-bottom: 20px;">
-                    <h3 style="font-size: 18px; font-weight: 700; color: #1f2937;">System Audit Logs</h3>
-                    <p style="color: #6b7280; font-size: 13px;">Immutable record of administrative actions.</p>
+                    <h3 style="font-size: 18px; font-weight: 700; color: var(--ds-text);">Administrative Audit Trail</h3>
+                    <p style="color: #6b7280; font-size: 13px;">Immutable log of admin actions on clinician accounts and platform settings. Each row is one recorded event.</p>
                 </div>
                 
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
-                                <th>Log ID</th>
-                                <th>Administrator</th>
-                                <th>Action Taken</th>
-                                <th>Target Entity</th>
-                                <th>IP Address</th>
+                                <th>Entry #</th>
+                                <th>Performed by</th>
+                                <th>Action</th>
+                                <th>Affected record</th>
+                                <th>Source IP</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1284,7 +1285,7 @@
                                     <tr>
                                         <td style="color: #6b7280;">#{{ $log['id'] }}</td>
                                         <td style="font-weight: 600;">{{ $log['admin_name'] }}</td>
-                                        <td><span class="status-badge" style="background: #E5FFF6; color: #527267;">{{ $log['action'] }}</span></td>
+                                        <td><span class="status-badge" style="background: #E5FFF6; color: var(--ds-brand-500);">{{ $log['action'] }}</span></td>
                                         <td style="font-family: monospace; font-size: 12px; color: #4b5563;">{{ $log['target'] }}</td>
                                         <td style="color: #9ca3af; font-size: 12px;">{{ $log['ip'] }}</td>
                                     </tr>
@@ -1483,7 +1484,7 @@
                             this.showAddModal = false;
                             this.resetNewProfessional();
 
-                            this.notify('success', `Professional added. Temp password: ${data.temp_password}`);
+                            this.notify('success', data.message || 'Professional added. Login credentials sent by email.');
                         } else {
                             // Display specific validation or server error messages
                             let errorMessage = data.message || 'Error adding professional';

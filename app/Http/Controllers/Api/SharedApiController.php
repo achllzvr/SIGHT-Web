@@ -4,15 +4,20 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\ChildProfile;
 use App\Models\SessionLimits;
 use App\Models\EyeHealthMetrics;
+use App\Services\GuardianChildAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
 class SharedApiController extends Controller
 {
+    public function __construct(
+        private readonly GuardianChildAccess $guardianChildAccess,
+    ) {
+    }
+
     /**
      * POST /api/shared/login
      * Authenticates Guardians and Admins via email/password
@@ -26,46 +31,42 @@ class SharedApiController extends Controller
         ]);
 
         $user = User::where('email', $request->email)
-            ->whereIn('role', ['Guardian', 'Admin'])
+            ->whereRaw('LOWER(role) IN (?, ?)', ['guardian', 'admin'])
             ->first();
 
         if (!$user) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        // Check lockout (3-strike rule)
         if ($user->locked_until && now() < $user->locked_until) {
             return response()->json([
                 'message' => 'Account temporarily locked due to failed login attempts',
-                'locked_until' => $user->locked_until
+                'locked_until' => $user->locked_until,
             ], 429);
         }
 
-        // Verify password
         if (!Hash::check($request->password, $user->password_hash)) {
             $user->increment('failed_login_attempts');
-            
-            // Lock account after 3 failed attempts
+
             if ($user->failed_login_attempts >= 3) {
                 $user->update(['locked_until' => now()->addMinutes(15)]);
+
                 return response()->json([
-                    'message' => 'Account locked due to 3 failed login attempts. Try again in 15 minutes.'
+                    'message' => 'Account locked due to 3 failed login attempts. Try again in 15 minutes.',
                 ], 429);
             }
-            
+
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        // Reset failed attempts on success
         $user->update([
             'failed_login_attempts' => 0,
-            'locked_until' => null
+            'locked_until' => null,
         ]);
 
         $user->tokens()->where('name', 'guardian-mobile')->delete();
         $token = $user->createToken('guardian-mobile')->plainTextToken;
 
-        // Create token
         return response()->json([
             'message' => 'Login successful',
             'user' => [
@@ -76,13 +77,12 @@ class SharedApiController extends Controller
                 'last_name' => $user->last_name ?? null,
                 'display_name' => $user->display_name,
             ],
-            'token' => $token // <-- RETURN IT TO FLUTTER
+            'token' => $token,
         ], 200);
     }
 
     /**
      * POST /api/shared/logout
-     * Revokes the active JWT/Sanctum token
      */
     public function logout(Request $request)
     {
@@ -93,10 +93,13 @@ class SharedApiController extends Controller
 
     /**
      * GET /api/shared/child/{child_id}/limits
-     * Fetches the current tracking rules and updated_at timestamp
      */
     public function getChildLimits($child_id)
     {
+        if ($response = $this->authorizeChildAccess((int) $child_id)) {
+            return $response;
+        }
+
         $limits = SessionLimits::where('child_id', $child_id)->first();
 
         if (!$limits) {
@@ -108,20 +111,23 @@ class SharedApiController extends Controller
             'child_id' => $limits->child_id,
             'daily_limit_minutes' => $limits->daily_limit_minutes,
             'mode' => $limits->mode,
-            'is_active' => (bool)$limits->is_active,
+            'is_active' => (bool) $limits->is_active,
             'harmful_distance_threshold' => $limits->harmful_distance_threshold,
             'critical_distance_threshold' => $limits->critical_distance_threshold,
-            'auto_enforce_breaks' => (bool)$limits->auto_enforce_breaks,
+            'auto_enforce_breaks' => (bool) $limits->auto_enforce_breaks,
             'updated_at' => $limits->updated_at->toIso8601String(),
         ], 200);
     }
 
     /**
      * GET /api/shared/child/{child_id}/metrics
-     * Retrieves paginated or date-ranged eye_health_metrics for UI charts
      */
     public function getChildMetrics(Request $request, $child_id)
     {
+        if ($response = $this->authorizeChildAccess((int) $child_id)) {
+            return $response;
+        }
+
         $request->validate([
             'per_page' => 'nullable|integer|min:1|max:100',
             'page' => 'nullable|integer|min:1',
@@ -131,7 +137,6 @@ class SharedApiController extends Controller
 
         $query = EyeHealthMetrics::where('child_id', $child_id);
 
-        // Date range filtering
         if ($request->has('from_date')) {
             $query->whereDate('timestamp', '>=', $request->from_date);
         }
@@ -149,7 +154,32 @@ class SharedApiController extends Controller
                 'total_pages' => $metrics->lastPage(),
                 'total_records' => $metrics->total(),
                 'per_page' => $metrics->perPage(),
-            ]
+            ],
         ], 200);
+    }
+
+    private function authorizeChildAccess(int $childId): ?\Illuminate\Http\JsonResponse
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $role = strtolower((string) $user->role);
+
+        if ($role === 'admin') {
+            return null;
+        }
+
+        if ($role === 'guardian') {
+            if ($this->guardianChildAccess->ownsChild((int) $user->user_id, $childId)) {
+                return null;
+            }
+
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        return response()->json(['message' => 'Unauthorized'], 403);
     }
 }

@@ -1,59 +1,49 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# LUMI Web (Laravel)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Administrative and clinician portal for **LUMI**, plus the mobile cloud API.
 
-## About Laravel
+## Roles
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+| Role | Surface |
+|------|---------|
+| **Admin** | Manage/verify clinicians, audit logs, settings |
+| **Clinician (Doctor)** | Redeem parent OTP/QR → view child telemetry → PDF export → end session |
+| **Guardian / Child** | **Mobile app only** — `/guardian/*` shows a “use the LUMI mobile app” page |
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Laravel 12 / PHP 8.2 / MySQL
+- Laravel Sanctum (mobile API)
+- Gmail SMTP via `PhpMailerService` (guardian email OTP + clinician invite emails)
+- Chart.js + DomPDF for clinician reports
 
-## Learning Laravel
+## Key mobile APIs
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- `POST /api/mobile/guardian/register` → sends email OTP
+- `POST /api/mobile/guardian/verify-email` `{ email, otp }`
+- `POST /api/mobile/guardian/resend-verification`
+- `POST /api/mobile/child/register` (**auth:sanctum**)
+- `POST /api/mobile/child/{id}/sync/metrics/batch`
+- `PUT /api/mobile/child/{id}/sync/pet|limits`
+- Temporary access: `POST /api/mobile/children/{id}/access-tokens`
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Prescriptions and permanent clinician–patient links were removed; access is session-based OTP/QR only.
 
-## Laravel Sponsors
+## Setup
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+composer install
+cp .env.example .env   # configure DB + MAIL_* for Gmail
+php artisan key:generate
+php artisan migrate --seed
+php artisan serve
+php artisan test
+```
 
-### Premium Partners
+See `EMAIL_SETUP.md` / `GMAIL_MYSQL_SETUP.md` for SMTP.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Docs
 
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- [Temp access guide](../docs/TEMP_ACCESS_TOKEN_REFACTOR_UPDATE_AND_TEST_GUIDE.md)
+- [2-minute demo](../docs/LUMI_2MIN_DEMO_SCRIPT.md)
+- [Thesis limitations](../docs/LUMI_THESIS_LIMITATIONS.md)

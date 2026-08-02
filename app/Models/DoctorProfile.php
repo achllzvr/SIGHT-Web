@@ -8,6 +8,7 @@ class DoctorProfile extends Model
 {
     protected $table = 'doctor_profile';
     protected $primaryKey = 'doctor_id';
+    public $incrementing = false;
     public $timestamps = false;
 
     protected $fillable = [

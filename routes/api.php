@@ -21,15 +21,9 @@ Route::prefix('shared')->group(function () {
 
 // WEB-ONLY CLOUD API
 Route::prefix('web')->middleware(['auth:sanctum', 'web.api'])->group(function () {
-    Route::prefix('guardian')->group(function () {
-        Route::post('/register', [GuardianApiController::class, 'register'])->withoutMiddleware('auth:sanctum');
-        Route::post('/child/add', [GuardianApiController::class, 'addChild']);
-        Route::put('/child/{child_id}/limits', [GuardianApiController::class, 'updateChildLimits']);
-        Route::delete('/child/{child_id}', [GuardianApiController::class, 'deleteChild']);
-    });
-
     Route::prefix('doctor')->group(function () {
-        Route::post('/access/redeem', [AccessApiController::class, 'redeem']);
+        Route::post('/access/redeem', [AccessApiController::class, 'redeem'])
+            ->middleware('throttle:doctor-access-redeem');
         Route::get('/access-sessions/active', [AccessApiController::class, 'clinicianActiveSession']);
         Route::post('/access-sessions/{id}/end', [AccessApiController::class, 'endSessionClinician']);
         Route::get('/access-logs', [AccessApiController::class, 'clinicianAccessLogs']);
@@ -45,17 +39,22 @@ Route::prefix('web')->middleware(['auth:sanctum', 'web.api'])->group(function ()
 
 // MOBILE-ONLY CLOUD API
 Route::prefix('mobile')->group(function () {
-    Route::post('/child/login', [MobileApiController::class, 'loginChild']);
+    Route::post('/child/login', [MobileApiController::class, 'loginChild'])
+        ->middleware('throttle:child-login');
 
     Route::post('/guardian/register', [GuardianApiController::class, 'registerMobile']);
-    Route::post('/child/register', [GuardianApiController::class, 'addChildMobile']);
-    Route::post('/guardian/verify-email', [GuardianApiController::class, 'verifyEmailMobile']);
+    Route::post('/guardian/verify-email', [GuardianApiController::class, 'verifyEmailMobile'])
+        ->middleware('throttle:verify-email');
+    Route::post('/guardian/resend-verification', [GuardianApiController::class, 'resendVerificationMobile'])
+        ->middleware('throttle:resend-verification');
     Route::post('/guardian/reset-password', [GuardianApiController::class, 'resetPasswordMobile']);
+    Route::put('/child/{child_id}/password', [GuardianApiController::class, 'updateChildPasswordMobile']);
 
     Route::get('/legal-documents/latest', [AccessApiController::class, 'latestLegalDocuments']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/guardian/children', [GuardianApiController::class, 'getChildrenMobile']);
+        Route::post('/child/register', [GuardianApiController::class, 'addChildMobile']);
 
         Route::post('/children/{child_id}/access-tokens', [AccessApiController::class, 'generateToken']);
         Route::get('/children/{child_id}/access-session', [AccessApiController::class, 'childActiveSession']);

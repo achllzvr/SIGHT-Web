@@ -30,6 +30,11 @@ class User extends Authenticatable
     protected $primaryKey = 'user_id';
 
     /**
+     * Local dump schema uses manual integer PKs (no AUTO_INCREMENT).
+     */
+    public $incrementing = false;
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -92,7 +97,7 @@ class User extends Authenticatable
      */
     public function isDoctor(): bool
     {
-        return $this->role === 'doctor';
+        return strtolower((string) $this->role) === 'doctor';
     }
 
     /**
@@ -100,7 +105,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return strtolower((string) $this->role) === 'admin';
     }
 
     /**
@@ -108,7 +113,7 @@ class User extends Authenticatable
      */
     public function hasRole(string $role): bool
     {
-        return $this->role === $role;
+        return strtolower((string) $this->role) === strtolower($role);
     }
 
     /**

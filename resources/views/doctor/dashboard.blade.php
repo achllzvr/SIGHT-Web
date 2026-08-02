@@ -9,62 +9,49 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+    @include('partials.ds-head')
     <style>
         :root {
-            --primary-green: #527267;
-            --bg-light: #f8fafc;
-            --warn: #b45309;
-            --danger-zone: rgba(220, 38, 38, 0.12);
+            --warn: #eab308;
+            --danger-zone: rgba(239, 68, 68, 0.12);
         }
         body {
-            font-family: 'Source Sans 3', system-ui, sans-serif;
             background:
-                radial-gradient(circle at 90% 50%, rgba(42, 131, 68, 0.15) 0%, transparent 35%),
-                radial-gradient(circle at 50% 50%, #E4FFD8 0%, transparent 60%),
-                #f8fafc;
+                radial-gradient(circle at 90% 50%, rgba(91, 154, 122, 0.12) 0%, transparent 35%),
+                radial-gradient(circle at 50% 50%, #ecfdf5 0%, transparent 55%),
+                var(--ds-bg);
             min-height: 100vh;
-        }
-        .brand { font-family: 'Fredoka', sans-serif; color: var(--primary-green); font-weight: 700; }
-        .panel {
-            background: #fff;
-            border: 1px solid rgba(82, 114, 103, 0.18);
-            border-radius: 1.25rem;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08);
         }
         .otp-box {
             letter-spacing: 0.4rem;
             font-size: 1.75rem;
             text-align: center;
             font-weight: 700;
-        }
-        .session-banner {
-            background: #ecfdf5;
-            border: 1px solid #a7f3d0;
-            border-radius: 1rem;
-            padding: 0.85rem 1.1rem;
-        }
-        .nav-pill .nav-link.active {
-            background: var(--primary-green);
-            color: #fff;
+            height: 48px;
+            border-radius: var(--ds-radius-md);
         }
         #qr-reader { width: 100%; max-width: 360px; margin: 0 auto; }
-        .table thead th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; }
+        .empty-state { padding: 2rem 1.5rem; text-align: center; }
+        .empty-state i { font-size: 2rem; color: var(--ds-text-disabled); }
+        .otp-hint { font-size: 0.875rem; color: var(--ds-text-secondary); }
+        .session-timer { font-size: 0.875rem; color: var(--ds-brand-700); }
     </style>
 </head>
 <body>
 @php
     $hasSession = !empty($active) && !empty($sessionId);
-    $telemetryJson = json_encode($dashboardData ?? []);
+    $hasTelemetry = !empty($dashboardData['has_data']);
+    $sessionAccessedAt = $hasSession ? ($active['accessed_at'] ?? null) : null;
+    $lastSync = $selectedPatient['last_sync'] ?? null;
 @endphp
-<nav class="navbar navbar-expand-lg px-4 py-3">
+<nav class="navbar navbar-expand-lg px-4 py-3 ds-topbar">
     <div class="container-fluid">
         <span class="brand fs-3">SIGHT</span>
         <div class="d-flex align-items-center gap-3">
             <span class="text-muted">{{ $doctor->display_name }}</span>
             <form method="POST" action="{{ route('logout') }}" class="m-0">
                 @csrf
-                <button class="btn btn-sm btn-outline-secondary rounded-pill">Logout</button>
+                <button class="btn btn-sm btn-outline-secondary ds-btn-ghost">Logout</button>
             </form>
         </div>
     </div>
@@ -87,13 +74,15 @@
                 <div class="col-lg-7">
                     <div class="panel p-4 p-md-5 text-center">
                         <h2 class="brand h3 mb-2">Enter on-site access code</h2>
-                        <p class="text-muted mb-4">Scan the parent QR code or type the 6-digit OTP. Access lasts until the parent or you end the session.</p>
+                        <p class="text-muted mb-2">Scan the parent QR code or type the 6-digit OTP. Access lasts until the parent or you end the session.</p>
+                        <p class="otp-hint mb-4"><i class="bi bi-clock"></i> Parent codes expire <strong>15 minutes</strong> after generation. Ask for a fresh code if yours has expired.</p>
 
                         <div class="mb-4">
                             <label class="form-label fw-semibold">6-digit OTP</label>
-                            <input id="otpInput" class="form-control otp-box mx-auto" maxlength="6" inputmode="numeric" placeholder="000000" style="max-width: 260px;">
+                            <input id="otpInput" class="form-control otp-box mx-auto" maxlength="6" inputmode="numeric" placeholder="000000" style="max-width: 260px;" aria-describedby="otpExpiryHint">
+                            <div id="otpExpiryHint" class="form-text otp-hint mt-2">Codes are single-use and valid for 15 minutes.</div>
                         </div>
-                        <button id="redeemBtn" class="btn btn-success rounded-pill px-4 mb-4" style="background: var(--primary-green); border:0;">
+                        <button id="redeemBtn" class="btn btn-success ds-btn-primary px-4 mb-4">
                             View Patient Data
                         </button>
 
@@ -109,6 +98,9 @@
                 <div>
                     <strong>Viewing {{ $selectedPatient['name'] ?? 'Patient' }}</strong>
                     <span class="text-muted ms-2">{{ $selectedPatient['patient_code'] ?? '' }} · Session live</span>
+                    @if($sessionAccessedAt)
+                    <div class="session-timer mt-1"><i class="bi bi-stopwatch"></i> Active for <span id="sessionElapsed">—</span></div>
+                    @endif
                 </div>
                 <div class="d-flex gap-2">
                     <a class="btn btn-outline-success btn-sm rounded-pill" href="{{ route('doctor.access.report', $sessionId) }}">
@@ -125,6 +117,13 @@
                 <div class="col-md-3"><div class="panel p-3"><div class="text-muted small">&lt; 30 cm Violations</div><div class="fs-4 fw-bold text-warning">{{ $dashboardData['distance_violations'] }}</div></div></div>
             </div>
 
+            @if(!$hasTelemetry)
+            <div class="empty-state mb-4">
+                <i class="bi bi-cloud-slash d-block mb-3"></i>
+                <h3 class="h6 text-dark mb-2">No eye-health data yet</h3>
+                <p class="mb-0">Ask the parent to sync from the LUMI app.@if(empty($lastSync)) No sync has been recorded for this child yet.@else Last sync: {{ \Carbon\Carbon::parse($lastSync)->format('M d, Y g:i A') }}.@endif</p>
+            </div>
+            @else
             <div class="row g-3">
                 <div class="col-lg-6">
                     <div class="panel p-3">
@@ -145,6 +144,7 @@
                     </div>
                 </div>
             </div>
+            @endif
             @endif
         </div>
 
@@ -186,12 +186,19 @@
 <script>
 const csrf = document.querySelector('meta[name="csrf-token"]').content;
 const hasSession = @json($hasSession);
+const hasTelemetry = @json($hasTelemetry);
 const sessionId = @json($sessionId);
+const sessionAccessedAt = @json($sessionAccessedAt);
 const dash = @json($dashboardData);
 
 async function redeemCode(code) {
     const err = document.getElementById('redeemError');
+    const btn = document.getElementById('redeemBtn');
     if (err) err.textContent = '';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Verifying…';
+    }
     try {
         const res = await fetch(@json(route('doctor.access.redeem')), {
             method: 'POST',
@@ -202,7 +209,11 @@ async function redeemCode(code) {
             },
             body: JSON.stringify({ code: String(code).trim() }),
         });
-        const body = await res.json();
+        const body = await res.json().catch(() => ({}));
+        if (res.status === 429) {
+            if (err) err.textContent = 'Too many attempts. Please wait a minute before trying again.';
+            return;
+        }
         if (!res.ok || body.status === 'error') {
             if (err) err.textContent = body.message || 'Invalid or expired code';
             return;
@@ -210,6 +221,11 @@ async function redeemCode(code) {
         window.location.reload();
     } catch (e) {
         if (err) err.textContent = 'Network error. Try again.';
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'View Patient Data';
+        }
     }
 }
 
@@ -239,13 +255,45 @@ if (!hasSession && window.Html5Qrcode) {
 }
 
 document.getElementById('endVisitBtn')?.addEventListener('click', async () => {
-    if (!sessionId) return;
-    await fetch(`/doctor/access-sessions/${sessionId}/end`, {
-        method: 'POST',
-        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
-    });
-    window.location.reload();
+    if (!sessionId || !confirm('End this viewing session? The parent will be notified.')) return;
+    const btn = document.getElementById('endVisitBtn');
+    if (btn) btn.disabled = true;
+    try {
+        const res = await fetch(`/doctor/access-sessions/${sessionId}/end`, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
+        });
+        if (!res.ok) {
+            alert('Could not end the session. Please try again.');
+            if (btn) btn.disabled = false;
+            return;
+        }
+        window.location.reload();
+    } catch (_) {
+        alert('Network error while ending session.');
+        if (btn) btn.disabled = false;
+    }
 });
+
+function formatElapsed(ms) {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}m ${String(seconds).padStart(2, '0')}s`;
+}
+
+function updateSessionElapsed() {
+    const el = document.getElementById('sessionElapsed');
+    if (!el || !sessionAccessedAt) return;
+    const started = new Date(sessionAccessedAt).getTime();
+    if (Number.isNaN(started)) return;
+    el.textContent = formatElapsed(Date.now() - started);
+}
+
+if (hasSession && sessionAccessedAt) {
+    updateSessionElapsed();
+    setInterval(updateSessionElapsed, 1000);
+}
 
 if (hasSession && sessionId) {
     setInterval(async () => {
@@ -260,7 +308,7 @@ if (hasSession && sessionId) {
     }, 5000);
 }
 
-if (hasSession && dash?.has_data) {
+if (hasSession && hasTelemetry && dash?.has_data) {
     const labels = dash.labels || [];
     const harmful = dash.harmful_distance_cm || 30;
     const harmLine = labels.map(() => harmful);

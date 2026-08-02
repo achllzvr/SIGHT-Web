@@ -6,19 +6,20 @@
     <title>LUMI - Eye Health</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    @include('partials.ds-head')
     <style>
         :root {
             --lumi-green: #eef9f1;
             --lumi-mint: #dcfce7;
             --lumi-purple: #a855f7;
             --lumi-pink: #fbcfe8;
-            --text-main: #1f2937;
+            --text-main: var(--ds-text);
         }
 
         body {
-            font-family: 'Fredoka', sans-serif;
-            background-color: #ffffff;
+            font-family: var(--ds-font-sans), sans-serif;
+            background-color: var(--ds-bg);
             margin: 0;
             overflow-x: hidden;
             color: var(--text-main);
@@ -32,7 +33,7 @@
             transform: translate(-50%, -50%);
             font-size: 30vw;
             font-weight: 900;
-            color: #E4FFD8;
+            color: #ecfdf5;
             z-index: -1;
             letter-spacing: 25px;
             user-select: none;
@@ -64,9 +65,9 @@
             position: relative;
             min-height: 100vh;
             background: 
-                radial-gradient(circle at 90% 50%, rgba(42, 131, 68, 0.2) 0%, transparent 35%),
-                radial-gradient(circle at 50% 50%, #E4FFD8 0%, transparent 60%),
-                radial-gradient(circle at 15% 20%, rgba(251, 207, 232, 0.6) 0%, transparent 20%);
+                radial-gradient(circle at 90% 50%, rgba(91, 154, 122, 0.14) 0%, transparent 35%),
+                radial-gradient(circle at 50% 50%, #ecfdf5 0%, transparent 60%),
+                radial-gradient(circle at 15% 20%, rgba(245, 158, 11, 0.12) 0%, transparent 20%);
 
             display: flex;
             align-items: center;
@@ -83,7 +84,7 @@
             top: 0;
             width: 100%;
             height: 800px;
-            background: #F5FFF7;
+            background: #f8fafc;
             border-radius: 0 0 50% 50%;
             z-index: -2;
             pointer-events: none;
@@ -265,7 +266,7 @@
             left: 50%;
             transform: translateX(-50%);
             width: 160px;
-            height: 52px;
+            height: 40px;
             background: #527267;
             color: white;
             text-decoration: none;

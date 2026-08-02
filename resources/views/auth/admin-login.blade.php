@@ -6,19 +6,20 @@
     <title>Admin Login - Eye Health Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    @include('partials.ds-head')
     <style>
         :root {
             --lumi-green: #eef9f1;
             --lumi-mint: #dcfce7;
             --lumi-purple: #a855f7;
             --bg-white: #ffffff;
-            --text-main: #1f2937;
-            --primary-green: #527267;
+            --text-main: var(--ds-text);
+            --primary-green: var(--ds-brand-500);
         }
 
         body {
-            font-family: 'Fredoka', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: var(--ds-font-sans);
             background-color: var(--bg-white);
             color: var(--text-main);
             margin: 0;
@@ -30,9 +31,9 @@
             position: relative;
             min-height: 100vh;
             background:
-                radial-gradient(circle at 90% 50%, rgba(42, 131, 68, 0.2) 0%, transparent 35%),
-                radial-gradient(circle at 50% 50%, #E4FFD8 0%, transparent 60%),
-                radial-gradient(circle at 15% 20%, rgba(251, 207, 232, 0.6) 0%, transparent 20%);
+                radial-gradient(circle at 90% 50%, rgba(91, 154, 122, 0.14) 0%, transparent 35%),
+                radial-gradient(circle at 50% 50%, #ecfdf5 0%, transparent 60%),
+                radial-gradient(circle at 15% 20%, rgba(245, 158, 11, 0.12) 0%, transparent 20%);
             display: flex;
             align-items: flex-start;
             justify-content: center;
@@ -47,7 +48,7 @@
             top: 0;
             width: 100%;
             height: 800px;
-            background: #F5FFF7;
+            background: #f8fafc;
             border-radius: 0 0 50% 50%;
             z-index: -2;
             pointer-events: none;
@@ -71,10 +72,10 @@
             top: 32%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-family: 'Fredoka', sans-serif;
+            font-family: var(--ds-font-sans), sans-serif;
             font-size: 30vw;
             font-weight: 900;
-            color: #E4FFD8;
+            color: #ecfdf5;
             z-index: -1;
             letter-spacing: 4px;
             user-select: none;
@@ -130,7 +131,7 @@
         .phone-character {
             width: 100%;
             display: block;
-            border-radius: 2.5rem;
+            border-radius: var(--ds-radius-xl);
             transition: transform 0.25s ease, filter 0.25s ease;
             will-change: transform;
             filter: drop-shadow(0 30px 70px rgba(0, 0, 0, 0.12));
@@ -228,7 +229,7 @@
             background: rgba(255, 255, 255, 0.94);
             border: 1px solid rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
-            border-radius: 2.5rem;
+            border-radius: var(--ds-radius-xl);
             box-shadow: 0 32px 120px rgba(0, 0, 0, 0.12);
             overflow: hidden;
             min-height: 640px;
@@ -242,7 +243,7 @@
             background: rgba(220, 38, 38, 0.08);
             border: 1px solid rgba(220, 38, 38, 0.15);
             color: #b91c1c;
-            border-radius: 1.5rem;
+            border-radius: var(--ds-radius-md);
             padding: 1.25rem;
             font-size: 0.95rem;
             margin-bottom: 2rem;
@@ -274,12 +275,12 @@
         .login-card .card-title {
             font-size: 2rem;
             font-weight: 800;
-            color: #141c2a;
+            color: var(--ds-text);
             margin-bottom: 0.5rem;
         }
 
         .login-card .card-text {
-            color: #4b525f;
+            color: var(--ds-text-secondary);
             font-size: 0.95rem;
             margin: 0;
         }
@@ -290,9 +291,9 @@
         }
 
         .form-control {
-            border: 2px solid rgba(16, 185, 129, 0.18);
-            border-radius: 1.5rem;
-            height: 52px;
+            border: 1px solid var(--ds-border);
+            border-radius: var(--ds-radius-md);
+            height: 40px;
             padding: 0 1.25rem;
             font-size: 0.95rem;
             background: rgba(255,255,255,0.9);
@@ -315,14 +316,14 @@
             background-color: var(--primary-green);
             color: white;
             font-weight: 700;
-            border-radius: 999px;
+            border-radius: var(--ds-radius-md);
             padding: 0.85rem 1.5rem;
             border: none;
             transition: all 0.2s ease;
         }
 
         .btn-signin:hover {
-            background-color: #405b4d;
+            background-color: var(--ds-brand-600);
         }
 
         .button-container {
@@ -373,7 +374,7 @@
         @media (max-width: 560px) {
             .login-card {
                 min-height: auto;
-                border-radius: 2rem;
+                border-radius: var(--ds-radius-xl);
             }
 
             .login-card .card-header {

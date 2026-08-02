@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Account</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    @include('partials.ds-head')
     <style>
         body {
-            font-family: 'Fredoka', system-ui, -apple-system, sans-serif;
+            font-family: var(--ds-font-sans), system-ui, -apple-system, sans-serif;
             background-color: #fafafa;
             margin: 0;
             overflow-x: hidden;
@@ -17,9 +18,9 @@
             position: relative;
             min-height: 100vh;
             background:
-                radial-gradient(circle at 90% 50%, rgba(42, 131, 68, 0.2) 0%, transparent 35%),
-                radial-gradient(circle at 50% 50%, #E4FFD8 0%, transparent 60%),
-                radial-gradient(circle at 15% 20%, rgba(251, 207, 232, 0.6) 0%, transparent 20%);
+                radial-gradient(circle at 90% 50%, rgba(91, 154, 122, 0.14) 0%, transparent 35%),
+                radial-gradient(circle at 50% 50%, #ecfdf5 0%, transparent 60%),
+                radial-gradient(circle at 15% 20%, rgba(245, 158, 11, 0.12) 0%, transparent 20%);
             display: flex;
             align-items: flex-start;
             justify-content: center;
@@ -34,7 +35,7 @@
             top: 0;
             width: 100%;
             height: 620px;
-            background: #F5FFF7;
+            background: #f8fafc;
             border-radius: 0 0 50% 50%;
             z-index: -2;
             pointer-events: none;
@@ -58,10 +59,10 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-family: 'Fredoka', sans-serif;
+            font-family: var(--ds-font-sans), sans-serif;
             font-size: 30vw;
             font-weight: 900;
-            color: #E4FFD8;
+            color: #ecfdf5;
             z-index: -1;
             letter-spacing: 25px;
             user-select: none;
@@ -100,7 +101,7 @@
             background: rgba(255, 255, 255, 0.94);
             border: 1px solid rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
-            border-radius: 2.5rem;
+            border-radius: var(--ds-radius-xl);
             box-shadow: 0 32px 120px rgba(0, 0, 0, 0.12);
             overflow: hidden;
             min-height: 640px;
@@ -325,7 +326,7 @@
             background: rgba(220, 38, 38, 0.08);
             border: 1px solid rgba(220, 38, 38, 0.15);
             color: #b91c1c;
-            border-radius: 1.5rem;
+            border-radius: var(--ds-radius-md);
             padding: 1.25rem;
             font-size: 0.95rem;
             margin-bottom: 2rem;

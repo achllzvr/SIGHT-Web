@@ -35,7 +35,9 @@ Route::prefix('auth')->group(function () {
 
 Route::prefix('doctor')->middleware(['auth', 'role:doctor'])->group(function () {
     Route::get('/dashboard', [DoctorController::class, 'dashboard'])->name('doctor.dashboard');
-    Route::post('/access/redeem', [DoctorController::class, 'redeemAccess'])->name('doctor.access.redeem');
+    Route::post('/access/redeem', [DoctorController::class, 'redeemAccess'])
+        ->middleware('throttle:doctor-access-redeem')
+        ->name('doctor.access.redeem');
     Route::post('/access-sessions/{id}/end', [DoctorController::class, 'endSession'])->name('doctor.access.end');
     Route::get('/access-sessions/active', [DoctorController::class, 'activeSession'])->name('doctor.access.active');
     Route::get('/access-logs', [DoctorController::class, 'accessLogs'])->name('doctor.access.logs');
@@ -58,6 +60,6 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 });
 
 Route::prefix('guardian')->middleware(['auth', 'role:guardian'])->group(function () {
-    Route::get('/children', [GuardianController::class, 'children'])->name('guardian.children');
-    Route::get('/dashboard', [GuardianController::class, 'dashboard'])->name('guardian.dashboard');
+    Route::get('/dashboard', [GuardianController::class, 'useMobile'])->name('guardian.dashboard');
+    Route::get('/children', [GuardianController::class, 'useMobile'])->name('guardian.children');
 });

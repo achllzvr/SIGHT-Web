@@ -79,9 +79,20 @@ class AccessApiController extends Controller
 
     public function latestLegalDocuments()
     {
-        $result = $this->legalService->latestDocuments();
+        try {
+            $result = $this->legalService->latestDocuments();
 
-        return response()->json($result['body'], $result['http_code']);
+            return response()->json($result['body'], $result['http_code']);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unable to load legal documents right now.',
+                'data' => ['documents' => []],
+                'errors' => ['legal' => ['Legal documents temporarily unavailable']],
+            ], 503);
+        }
     }
 
     public function acceptLegalDocuments(Request $request)

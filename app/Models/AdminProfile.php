@@ -8,9 +8,11 @@ class AdminProfile extends Model
 {
     protected $table = 'admin_profile';
     protected $primaryKey = 'admin_id';
+    public $incrementing = false;
     public $timestamps = false;
 
     protected $fillable = [
+        'admin_id',
         'user_id',
         'role_level',
         'last_login',

@@ -109,10 +109,46 @@ class PhpMailerService
     }
 
     /**
+     * Send email verification OTP to a guardian.
+     */
+    public function sendEmailVerificationOtp($user, string $otpCode): bool
+    {
+        $subject = 'Verify Your Email — LUMI / SIGHT';
+        $displayName = htmlspecialchars($user->display_name ?? 'Guardian', ENT_QUOTES, 'UTF-8');
+        $htmlBody = "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: #527267; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+                .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+                .code { background: white; padding: 20px; border-left: 4px solid #527267; margin: 20px 0; font-size: 28px; font-weight: bold; letter-spacing: 6px; text-align: center; font-family: monospace; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'><h1>Verify Your Email</h1></div>
+                <div class='content'>
+                    <p>Hello <strong>{$displayName}</strong>,</p>
+                    <p>Use this code to verify your email address. It expires in 10 minutes.</p>
+                    <div class='code'>{$otpCode}</div>
+                    <p>If you did not create an account, you can ignore this message.</p>
+                    <p>Best regards,<br><strong>SIGHT Team</strong></p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return $this->sendEmail($user->email, $user->display_name, $subject, $htmlBody);
+    }
+
+    /**
      * Send professional invitation email
      */
-    
-public function sendProfessionalInvitation($professional, $tempPassword)
+    public function sendProfessionalInvitation($professional, $tempPassword)
 {
     $subject = 'Your Sight Account is Pending Verification';
     $htmlBody = "

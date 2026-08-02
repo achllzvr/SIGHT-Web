@@ -6,19 +6,20 @@
     <title>Doctor Login - Eye Health Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    @include('partials.ds-head')
     <style>
         :root {
-            --primary-green: #527267;
+            --primary-green: var(--ds-brand-500);
             --bg-light: #f8fafc;
         }
         body {
             /* Copied from welcome.blade.php .hero-section background */
             background:
-                radial-gradient(circle at 90% 50%, rgba(42, 131, 68, 0.2) 0%, transparent 35%),
-                radial-gradient(circle at 50% 50%, #E4FFD8 0%, transparent 60%),
-                radial-gradient(circle at 15% 20%, rgba(251, 207, 232, 0.6) 0%, transparent 20%);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                radial-gradient(circle at 90% 50%, rgba(91, 154, 122, 0.14) 0%, transparent 35%),
+                radial-gradient(circle at 50% 50%, #ecfdf5 0%, transparent 60%),
+                radial-gradient(circle at 15% 20%, rgba(245, 158, 11, 0.12) 0%, transparent 20%);
+            font-family: var(--ds-font-sans);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -34,7 +35,7 @@
             top: 0;
             width: 100%;
             height: 800px;
-            background: #F5FFF7;
+            background: #f8fafc;
             border-radius: 0 0 50% 50%;
             z-index: -2;
             pointer-events: none;
@@ -60,7 +61,7 @@
             background: rgba(255, 255, 255, 0.94);
             border: 1px solid rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
-            border-radius: 2.5rem;
+            border-radius: var(--ds-radius-xl);
             box-shadow: 0 32px 120px rgba(0, 0, 0, 0.12);
             min-height: 640px;
             position: relative; /* Ensure z-index works */
@@ -72,7 +73,7 @@
             background: rgba(220, 38, 38, 0.08);
             border: 1px solid rgba(220, 38, 38, 0.15);
             color: #b91c1c;
-            border-radius: 1.5rem;
+            border-radius: var(--ds-radius-md);
             padding: 1.25rem;
             font-size: 0.95rem;
             margin-bottom: 2rem;
@@ -128,7 +129,7 @@
         }
         .form-control {
             border: 2px solid #000;
-            border-radius: 1.5rem;
+            border-radius: var(--ds-radius-md);
             height: 48px;
             padding: 0 1.25rem;
             font-size: 0.875rem;
@@ -199,7 +200,7 @@
             background-color: var(--primary-green);
             color: white;
             font-weight: 600;
-            border-radius: 1.5rem;
+            border-radius: var(--ds-radius-md);
             padding: 0.75rem 2rem;
             border: none;
             transition: all 0.2s;

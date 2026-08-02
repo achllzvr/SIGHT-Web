@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Set New Password - SIGHT</title>
+    @include('partials.ds-head')
     <style>
         body { font-family: Arial, sans-serif; background: #f3f4f6; margin: 0; }
         .wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }

@@ -39,6 +39,7 @@ class DoctorController extends Controller
                 'initials' => $active['child']['initials'] ?? 'PT',
                 'birthdate' => $active['child']['birthdate'] ?? null,
                 'patient_code' => $active['child']['patient_code'] ?? null,
+                'last_sync' => $active['child']['last_sync'] ?? null,
             ];
             $dashboardData = $this->formatDashboardFromTelemetry($active['telemetry'] ?? null);
         }
