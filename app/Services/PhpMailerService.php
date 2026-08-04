@@ -110,17 +110,40 @@ HTML;
             $this->mail->Username = env('MAIL_USERNAME');
             $this->mail->Password = env('MAIL_PASSWORD');
             $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $this->mail->Port = env('MAIL_PORT', 587);
-            $this->mail->setFrom(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME', 'LUMI'));
+            $this->mail->Port = (int) env('MAIL_PORT', 587);
+            $this->applyFromAddress();
         } catch (\Exception $e) {
-            Log::error('PHPMailer Error: ' . $e->getMessage());
-            throw $e;
+            // Never break API DI (e.g. guardian children list) because mail is misconfigured.
+            Log::error('PHPMailer setup error: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Resolve a usable From address. Empty MAIL_FROM_ADDRESS caused
+     * "Invalid address: (From):" and 500s on any controller that injects this service.
+     */
+    private function applyFromAddress(): void
+    {
+        $from = trim((string) env('MAIL_FROM_ADDRESS', ''));
+        if ($from === '') {
+            $from = trim((string) env('MAIL_USERNAME', ''));
+        }
+        if ($from === '' || !filter_var($from, FILTER_VALIDATE_EMAIL)) {
+            $from = 'noreply@lumi.com.ph';
+        }
+
+        $name = trim((string) env('MAIL_FROM_NAME', 'LUMI'));
+        if ($name === '') {
+            $name = 'LUMI';
+        }
+
+        $this->mail->setFrom($from, $name);
     }
 
     public function sendEmail($toEmail, $toName, $subject, $htmlBody)
     {
         try {
+            $this->applyFromAddress();
             $this->mail->addAddress($toEmail, $toName);
             $this->mail->isHTML(true);
             $this->mail->Subject = $subject;

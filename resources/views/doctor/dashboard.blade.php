@@ -51,6 +51,214 @@
         .ref-list li strong { color: #1e293b; }
         .ref-accordion .accordion-button { font-weight: 600; font-size: 0.9rem; }
         .ref-accordion .accordion-body { padding-top: 0.25rem; }
+
+        /* —— Visit data viewer polish (layout only) —— */
+        .visit-viewer {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+        .visit-viewer .session-banner {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem 1.25rem;
+            padding: 1.1rem 1.35rem !important;
+            margin-bottom: 0 !important;
+        }
+        .visit-viewer .session-banner__meta {
+            flex: 1 1 240px;
+            min-width: 0;
+        }
+        .visit-viewer .session-banner__meta strong {
+            display: inline;
+            font-size: 1.05rem;
+            line-height: 1.35;
+        }
+        .visit-viewer .session-banner__actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.65rem;
+            flex: 0 0 auto;
+        }
+        .visit-viewer .session-banner__actions .btn {
+            min-height: 40px;
+            padding: 0.45rem 1.1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .visit-viewer .session-timer {
+            margin-top: 0.35rem;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .visit-viewer .guide-callout {
+            margin-bottom: 0 !important;
+            padding: 1.15rem 1.35rem !important;
+        }
+        .visit-viewer .guide-callout h3 {
+            margin: 0 0 0.65rem;
+            letter-spacing: 0.04em;
+            line-height: 1.3;
+        }
+        .visit-viewer .guide-callout p {
+            margin: 0 0 0.65rem;
+            line-height: 1.55;
+            max-width: 72rem;
+        }
+        .visit-viewer .guide-callout p:last-child { margin-bottom: 0; }
+        .visit-viewer .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: 1rem;
+            margin: 0 !important;
+        }
+        .visit-viewer .kpi-grid > [class*="col-"] {
+            width: auto;
+            max-width: none;
+            padding: 0;
+            grid-column: span 12;
+        }
+        @media (min-width: 768px) {
+            .visit-viewer .kpi-grid > .kpi-span-3 { grid-column: span 3; }
+            .visit-viewer .kpi-grid > .kpi-span-4 { grid-column: span 4; }
+        }
+        .visit-viewer .kpi-card {
+            height: 100%;
+            min-height: 100%;
+            padding: 1.15rem 1.2rem !important;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            margin: 0;
+        }
+        .visit-viewer .kpi-card .kpi-label {
+            font-size: 0.78rem;
+            letter-spacing: 0.02em;
+            color: var(--ds-text-secondary);
+            margin: 0;
+            line-height: 1.3;
+        }
+        .visit-viewer .kpi-card .kpi-value {
+            font-size: 1.55rem;
+            font-weight: 700;
+            line-height: 1.15;
+            color: var(--ds-text);
+            margin: 0.15rem 0 0;
+        }
+        .visit-viewer .kpi-card .kpi-hint {
+            margin-top: auto;
+            padding-top: 0.55rem;
+            line-height: 1.5;
+        }
+        .visit-viewer .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin: 0 !important;
+        }
+        @media (min-width: 992px) {
+            .visit-viewer .chart-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .visit-viewer .chart-grid > .chart-span-full {
+                grid-column: 1 / -1;
+            }
+        }
+        .visit-viewer .chart-panel {
+            height: 100%;
+            padding: 1.2rem 1.25rem !important;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+        }
+        .visit-viewer .chart-panel h3 {
+            margin: 0 0 0.35rem;
+            line-height: 1.3;
+        }
+        .visit-viewer .chart-panel > .text-muted {
+            margin-bottom: 0.85rem !important;
+            line-height: 1.45;
+        }
+        .visit-viewer .chart-canvas {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            margin-top: 0.25rem;
+        }
+        .visit-viewer .chart-canvas--sm {
+            height: 160px;
+        }
+        .visit-viewer .chart-canvas canvas {
+            position: absolute;
+            inset: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .visit-viewer .chart-guide {
+            margin-top: 1rem;
+            padding-top: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+        .visit-viewer .chart-guide p {
+            margin: 0;
+            font-size: 0.8125rem;
+            color: var(--ds-text-secondary);
+            line-height: 1.55;
+        }
+        .visit-viewer .ref-accordion.panel {
+            margin: 0;
+        }
+        .visit-viewer .ref-accordion .accordion-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 1.25rem;
+            line-height: 1.35;
+        }
+        .visit-viewer .ref-accordion .accordion-button i {
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .visit-viewer .ref-accordion .accordion-body {
+            padding: 0.25rem 1.35rem 1.25rem !important;
+        }
+        .visit-viewer .ref-list {
+            padding-left: 1.15rem;
+        }
+        .visit-viewer .ref-list li {
+            margin-bottom: 0.7rem;
+            line-height: 1.55;
+        }
+        .visit-viewer .ref-list li:last-child { margin-bottom: 0; }
+        .visit-viewer .empty-state {
+            margin: 0 !important;
+            padding: 2.25rem 1.5rem;
+        }
+        /* Avoid stacked paper borders on metric reference */
+        .visit-viewer .ref-accordion.panel,
+        .lumi-arcade .visit-viewer .ref-accordion.panel {
+            padding: 0 !important;
+        }
+        .lumi-arcade .visit-viewer .ref-accordion .accordion-item {
+            border: 0 !important;
+            box-shadow: none !important;
+            margin-bottom: 0 !important;
+            border-radius: 0 !important;
+        }
+        .lumi-arcade .visit-viewer .ref-accordion .accordion-button {
+            border-radius: 0 !important;
+        }
+        .lumi-arcade .visit-viewer .kpi-grid,
+        .lumi-arcade .visit-viewer .chart-grid {
+            gap: 1.1rem;
+        }
     </style>
     @include('partials.ds-arcade-head')
     <style>
@@ -220,15 +428,16 @@
                 </div>
             </div>
             @else
-            <div class="session-banner d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-                <div>
+            <div class="visit-viewer">
+            <div class="session-banner">
+                <div class="session-banner__meta">
                     <strong>Viewing {{ $selectedPatient['name'] ?? 'Patient' }}</strong>
                     <span class="text-muted ms-2">{{ $selectedPatient['patient_code'] ?? '' }} · Session live</span>
                     @if($sessionAccessedAt)
-                    <div class="session-timer mt-1"><i class="bi bi-stopwatch"></i> Active for <span id="sessionElapsed">—</span></div>
+                    <div class="session-timer"><i class="bi bi-stopwatch"></i> Active for <span id="sessionElapsed">—</span></div>
                     @endif
                 </div>
-                <div class="d-flex gap-2">
+                <div class="session-banner__actions">
                     <a class="btn btn-outline-success btn-sm rounded-pill" href="{{ route('doctor.access.report', $sessionId) }}">
                         <i class="bi bi-filetype-pdf"></i> Export PDF
                     </a>
@@ -236,9 +445,9 @@
                 </div>
             </div>
 
-            <div class="guide-callout mb-4">
+            <div class="guide-callout">
                 <h3 class="d-flex align-items-center gap-2"><i class="bi bi-info-circle"></i> How to read this visit snapshot</h3>
-                <p class="mb-2">
+                <p>
                     These figures come from the child’s <strong>LUMI mobile app</strong>. During Watch sessions, on-device face tracking records blink rate and viewing distance; the app curates those samples into short metric windows and the parent syncs them to LUMI.
                     Charts below cover the <strong>last 7 days</strong> (daily aggregates). Summary cards use that same window.
                     @if(!empty($lastSync))
@@ -247,123 +456,120 @@
                         No parent sync timestamp is on file yet for this child.
                     @endif
                 </p>
-                <p class="mb-0">
+                <p>
                     Use this as <strong>contextual support for counseling</strong> (near-work habits, breaks, blink patterns)—not as a substitute for clinical examination or refraction.
                 </p>
             </div>
 
-            <div class="row g-3 mb-4">
-                <div class="col-md-3">
-                    <div class="panel p-3 h-100">
-                        <div class="text-muted small">Health Grade</div>
-                        <div class="fs-4 fw-bold">{{ $dashboardData['health_grade'] }}</div>
+            <div class="kpi-grid">
+                <div class="kpi-span-3">
+                    <div class="panel kpi-card">
+                        <div class="kpi-label">Health Grade</div>
+                        <div class="kpi-value">{{ $dashboardData['health_grade'] }}</div>
                         <p class="kpi-hint">Label from the latest health score: Excellent ≥90 · Good ≥80 · Fair ≥70 · Needs Attention &lt;70.</p>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="panel p-3 h-100">
-                        <div class="text-muted small">Health Score</div>
-                        <div class="fs-4 fw-bold">{{ $dashboardData['health_score_display'] }}</div>
+                <div class="kpi-span-3">
+                    <div class="panel kpi-card">
+                        <div class="kpi-label">Health Score</div>
+                        <div class="kpi-value">{{ $dashboardData['health_score_display'] }}</div>
                         <p class="kpi-hint">0–100 score from the app. Drops when viewing is too close or blinks are too few; recovers after healthy breaks/exercises.</p>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="panel p-3 h-100">
-                        <div class="text-muted small">Avg Distance</div>
-                        <div class="fs-4 fw-bold">{{ $dashboardData['distance_display'] }}</div>
+                <div class="kpi-span-3">
+                    <div class="panel kpi-card">
+                        <div class="kpi-label">Avg Distance</div>
+                        <div class="kpi-value">{{ $dashboardData['distance_display'] }}</div>
                         <p class="kpi-hint">Mean viewing distance across days with data. Target habit: keep screens at about <strong>30 cm or farther</strong>.</p>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="panel p-3 h-100">
-                        <div class="text-muted small">&lt; 30 cm Violations</div>
-                        <div class="fs-4 fw-bold text-warning">{{ $dashboardData['distance_violations'] }}</div>
+                <div class="kpi-span-3">
+                    <div class="panel kpi-card">
+                        <div class="kpi-label">&lt; 30 cm Violations</div>
+                        <div class="kpi-value {{ ($dashboardData['distance_violations'] ?? 0) > 0 ? 'text-warning' : '' }}">{{ $dashboardData['distance_violations'] }}</div>
                         <p class="kpi-hint">Number of days in this 7-day window whose <em>daily average</em> distance fell below 30 cm (near-work risk days).</p>
                     </div>
                 </div>
-            </div>
-
-            @if($hasTelemetry)
-            <div class="row g-3 mb-4">
-                <div class="col-md-4">
-                    <div class="panel p-3 h-100">
-                        <div class="text-muted small">Avg Blink Rate</div>
-                        <div class="fs-5 fw-bold">{{ $dashboardData['blink_rate_display'] }}</div>
+                @if($hasTelemetry)
+                <div class="kpi-span-4">
+                    <div class="panel kpi-card">
+                        <div class="kpi-label">Avg Blink Rate</div>
+                        <div class="kpi-value">{{ $dashboardData['blink_rate_display'] }}</div>
                         <p class="kpi-hint">Daily averages, then mean across days with data. Low blink rates (&lt;12/min in daily avg) are flagged as dry-eye / concentration risk.</p>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="panel p-3 h-100">
-                        <div class="text-muted small">Avg Screen Time</div>
-                        <div class="fs-5 fw-bold">{{ $dashboardData['screen_time_display'] }}</div>
+                <div class="kpi-span-4">
+                    <div class="panel kpi-card">
+                        <div class="kpi-label">Avg Screen Time</div>
+                        <div class="kpi-value">{{ $dashboardData['screen_time_display'] }}</div>
                         <p class="kpi-hint">Minutes of active Watch tracking per day (averaged). Reflects supervised play/use tracked by LUMI—not all device use.</p>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="panel p-3 h-100">
-                        <div class="text-muted small">Low Blink Days</div>
-                        <div class="fs-5 fw-bold">{{ $dashboardData['low_blink_events'] }}</div>
+                <div class="kpi-span-4">
+                    <div class="panel kpi-card">
+                        <div class="kpi-label">Low Blink Days</div>
+                        <div class="kpi-value">{{ $dashboardData['low_blink_events'] }}</div>
                         <p class="kpi-hint">Days whose average blink rate was below 12 blinks/min. Useful when discussing blink exercises and break habits.</p>
                     </div>
                 </div>
+                @endif
             </div>
-            @endif
 
             @if(!$hasTelemetry)
-            <div class="empty-state mb-4">
+            <div class="empty-state">
                 <i class="bi bi-cloud-slash d-block mb-3"></i>
                 <h3 class="h6 text-dark mb-2">No eye-health data yet</h3>
                 <p class="mb-0">Ask the parent to open LUMI, let the child use Watch tracking, then sync from the parent account.@if(empty($lastSync)) No sync has been recorded for this child yet.@else Last sync: {{ \Carbon\Carbon::parse($lastSync)->format('M d, Y g:i A') }}.@endif</p>
             </div>
             @else
-            <div class="row g-3">
-                <div class="col-lg-6">
-                    <div class="panel p-3">
-                        <h3 class="h6 mb-1">Blink Rate &amp; Viewing Distance</h3>
-                        <p class="text-muted small mb-3">Daily averages over the last 7 days. Red dashed line = 30 cm near-work warning.</p>
-                        <canvas id="complianceChart" height="180"></canvas>
+            <div class="chart-grid">
+                <div>
+                    <div class="panel chart-panel">
+                        <h3 class="h6">Blink Rate &amp; Viewing Distance</h3>
+                        <p class="text-muted small">Daily averages over the last 7 days. Red dashed line = 30 cm near-work warning.</p>
+                        <div class="chart-canvas"><canvas id="complianceChart"></canvas></div>
                         <div class="chart-guide">
-                            <strong>What this shows:</strong> Blink rate (blinks/min) and average face-to-screen distance (cm) for each day.<br>
-                            <strong>How it’s calculated:</strong> The app samples blinks and distance during Watch sessions, stores short windows, then syncs. The portal averages those windows per calendar day.<br>
-                            <strong>Why it matters:</strong> Prolonged near focus and reduced blinking are linked to digital eye strain and discomfort. Sustained averages under 30 cm or sparse blinking are counseling cues for posture, breaks, and blink training.
+                            <p><strong>What this shows:</strong> Blink rate (blinks/min) and average face-to-screen distance (cm) for each day.</p>
+                            <p><strong>How it’s calculated:</strong> The app samples blinks and distance during Watch sessions, stores short windows, then syncs. The portal averages those windows per calendar day.</p>
+                            <p><strong>Why it matters:</strong> Prolonged near focus and reduced blinking are linked to digital eye strain and discomfort. Sustained averages under 30 cm or sparse blinking are counseling cues for posture, breaks, and blink training.</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6">
-                    <div class="panel p-3">
-                        <h3 class="h6 mb-1">Screen Time &amp; Strain</h3>
-                        <p class="text-muted small mb-3">Bars = tracked Watch minutes; line = strain events counted that day.</p>
-                        <canvas id="screenTimeChart" height="180"></canvas>
+                <div>
+                    <div class="panel chart-panel">
+                        <h3 class="h6">Screen Time &amp; Strain</h3>
+                        <p class="text-muted small">Bars = tracked Watch minutes; line = strain events counted that day.</p>
+                        <div class="chart-canvas"><canvas id="screenTimeChart"></canvas></div>
                         <div class="chart-guide">
-                            <strong>What this shows:</strong> How long Watch tracking was active and how often near-distance “strain” samples were counted.<br>
-                            <strong>How it’s calculated:</strong> Screen time is minutes of active Watch use logged by LUMI. Strain events count distance samples closer than the harmful threshold (default 30 cm) inside each metric window, then summed per day.<br>
-                            <strong>Why it matters:</strong> Higher load plus frequent close-range samples suggests denser near-work exposure—helpful when advising 20-20-20 breaks and session limits.
+                            <p><strong>What this shows:</strong> How long Watch tracking was active and how often near-distance “strain” samples were counted.</p>
+                            <p><strong>How it’s calculated:</strong> Screen time is minutes of active Watch use logged by LUMI. Strain events count distance samples closer than the harmful threshold (default 30 cm) inside each metric window, then summed per day.</p>
+                            <p><strong>Why it matters:</strong> Higher load plus frequent close-range samples suggests denser near-work exposure—helpful when advising 20-20-20 breaks and session limits.</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-12">
-                    <div class="panel p-3">
-                        <h3 class="h6 mb-1">Health Score Trend</h3>
-                        <p class="text-muted small mb-3">Daily average of the child’s in-app health score (0–100).</p>
-                        <canvas id="healthScoreChart" height="120"></canvas>
+                <div class="chart-span-full">
+                    <div class="panel chart-panel">
+                        <h3 class="h6">Health Score Trend</h3>
+                        <p class="text-muted small">Daily average of the child’s in-app health score (0–100).</p>
+                        <div class="chart-canvas chart-canvas--sm"><canvas id="healthScoreChart"></canvas></div>
                         <div class="chart-guide">
-                            <strong>What this shows:</strong> Day-by-day health score from LUMI’s gamified eye-care meter.<br>
-                            <strong>How it’s calculated:</strong> The app starts near 100 and deducts points when accommodative demand is high (closer than ~30 cm) or blink rate falls below a protective baseline (~10 blinks/min). Completing breaks and blink exercises can restore points. Daily points here are averages of synced windows.<br>
-                            <strong>Why it matters:</strong> A falling trend often means accumulating near-work stress; a rising trend suggests better habits or recovery after interventions you recommend.
+                            <p><strong>What this shows:</strong> Day-by-day health score from LUMI’s gamified eye-care meter.</p>
+                            <p><strong>How it’s calculated:</strong> The app starts near 100 and deducts points when accommodative demand is high (closer than ~30 cm) or blink rate falls below a protective baseline (~10 blinks/min). Completing breaks and blink exercises can restore points. Daily points here are averages of synced windows.</p>
+                            <p><strong>Why it matters:</strong> A falling trend often means accumulating near-work stress; a rising trend suggests better habits or recovery after interventions you recommend.</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-12">
-                    <div class="panel p-0 overflow-hidden ref-accordion">
+                <div class="chart-span-full">
+                    <div class="panel ref-accordion overflow-hidden">
                         <div class="accordion accordion-flush" id="metricReference">
                             <div class="accordion-item border-0">
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#metricReferenceBody" aria-expanded="false" aria-controls="metricReferenceBody">
-                                        <i class="bi bi-journal-medical me-2"></i> Metric reference — definitions, source &amp; clinical use
+                                        <i class="bi bi-journal-medical"></i> Metric reference — definitions, source &amp; clinical use
                                     </button>
                                 </h2>
                                 <div id="metricReferenceBody" class="accordion-collapse collapse" data-bs-parent="#metricReference">
-                                    <div class="accordion-body px-4 pb-4">
+                                    <div class="accordion-body">
                                         <ul class="ref-list">
                                             <li><strong>Data source.</strong> Parent-authorized LUMI child account. Metrics are captured on the phone during Watch tracking (face present), curated locally, then synced to LUMI when the parent is online.</li>
                                             <li><strong>Time window.</strong> This view always shows the rolling last 7 calendar days. Days without synced data appear as gaps on charts.</li>
@@ -383,6 +589,7 @@
                 </div>
             </div>
             @endif
+            </div>
             @endif
         </div>
 
@@ -652,6 +859,11 @@ if (hasSession && hasTelemetry && dash?.has_data) {
     const labels = dash.labels || [];
     const harmful = dash.harmful_distance_cm || 30;
     const harmLine = labels.map(() => harmful);
+    const chartLegend = {
+        position: 'bottom',
+        align: 'center',
+        labels: { boxWidth: 12, boxHeight: 12, padding: 14, usePointStyle: true },
+    };
 
     new Chart(document.getElementById('complianceChart'), {
         type: 'line',
@@ -665,6 +877,8 @@ if (hasSession && hasTelemetry && dash?.has_data) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: chartLegend },
             scales: {
                 y: { position: 'left', title: { display: true, text: 'Blinks/min' } },
                 y1: { position: 'right', min: 0, max: 80, grid: { drawOnChartArea: false }, title: { display: true, text: 'cm' } },
@@ -681,7 +895,11 @@ if (hasSession && hasTelemetry && dash?.has_data) {
                 { label: 'Strain events', data: dash.strain_events, type: 'line', borderColor: '#f59e0b', tension: 0.3 },
             ],
         },
-        options: { responsive: true },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: chartLegend },
+        },
     });
 
     new Chart(document.getElementById('healthScoreChart'), {
@@ -690,7 +908,12 @@ if (hasSession && hasTelemetry && dash?.has_data) {
             labels,
             datasets: [{ label: 'Health score', data: dash.health_scores, borderColor: '#16a34a', tension: 0.3, fill: false }],
         },
-        options: { responsive: true, scales: { y: { min: 0, max: 100 } } },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: chartLegend },
+            scales: { y: { min: 0, max: 100 } },
+        },
     });
 }
 </script>
