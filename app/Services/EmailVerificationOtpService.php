@@ -42,7 +42,7 @@ class EmailVerificationOtpService
         }
 
         if ($user->email_verified_at) {
-            return $this->success('Email is already verified.');
+            return $this->successWithMobileToken($user, 'Email is already verified.');
         }
 
         $record = EmailVerificationOtp::where('user_id', $user->user_id)
@@ -64,14 +64,16 @@ class EmailVerificationOtpService
             return $this->error('Invalid verification code.', 422);
         }
 
-        DB::transaction(function () use ($user, $record) {
+        DB::transaction(function () use ($user) {
             $user->email_verified_at = now();
             $user->save();
 
             EmailVerificationOtp::where('user_id', $user->user_id)->delete();
         });
 
-        return $this->success('Email verified successfully.');
+        $user->refresh();
+
+        return $this->successWithMobileToken($user, 'Email verified successfully.');
     }
 
     public function resend(string $email): array
@@ -100,6 +102,25 @@ class EmailVerificationOtpService
     private function invalidateForUser(int $userId): void
     {
         EmailVerificationOtp::where('user_id', $userId)->delete();
+    }
+
+    /**
+     * Mint a guardian-mobile Sanctum token so the app can call authenticated
+     * APIs (e.g. Add Child) without a separate login after OTP.
+     */
+    private function successWithMobileToken(User $user, string $message): array
+    {
+        $user->tokens()->where('name', 'guardian-mobile')->delete();
+        $token = $user->createToken('guardian-mobile')->plainTextToken;
+
+        return [
+            'http_code' => 200,
+            'body' => [
+                'status' => 'success',
+                'message' => $message,
+                'token' => $token,
+            ],
+        ];
     }
 
     private function success(string $message): array

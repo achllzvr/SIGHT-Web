@@ -7,7 +7,9 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
+use RuntimeException;
 
 class User extends Authenticatable
 {
@@ -30,9 +32,51 @@ class User extends Authenticatable
     protected $primaryKey = 'user_id';
 
     /**
-     * Local dump schema uses manual integer PKs (no AUTO_INCREMENT).
+     * Some imported dumps lack AUTO_INCREMENT on user_id. We still assign
+     * explicit PKs in {@see booted()} so Eloquent always has user_id after create
+     * (Hostinger AUTO_INCREMENT and manual-PK dumps both work).
      */
     public $incrementing = false;
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (! empty($user->user_id)) {
+                return;
+            }
+
+            $user->user_id = static::allocateNextUserId();
+        });
+    }
+
+    /**
+     * Next unused user_id (supports legacy rows such as user_id = 0).
+     */
+    public static function allocateNextUserId(): int
+    {
+        $next = ((int) DB::table('user')->max('user_id')) + 1;
+
+        return max(1, $next);
+    }
+
+    /**
+     * Ensure a just-created user has a hydrated primary key (defensive).
+     */
+    public static function ensurePrimaryKey(User $user, ?string $email = null): User
+    {
+        if (! empty($user->user_id)) {
+            return $user;
+        }
+
+        if ($email !== null && $email !== '') {
+            $found = static::where('email', $email)->first();
+            if ($found && ! empty($found->user_id)) {
+                return $found;
+            }
+        }
+
+        throw new RuntimeException('User primary key missing after create.');
+    }
 
     /**
      * The attributes that are mass assignable.

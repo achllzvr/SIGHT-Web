@@ -66,9 +66,14 @@ class EmailOtpVerificationTest extends TestCase
             ->assertJson([
                 'status' => 'success',
                 'message' => 'Email verified successfully.',
-            ]);
+            ])
+            ->assertJsonStructure(['token']);
 
         $user->refresh();
         $this->assertNotNull($user->email_verified_at);
+        $this->assertTrue(
+            $user->tokens()->where('name', 'guardian-mobile')->exists(),
+            'OTP verify should mint a guardian-mobile Sanctum token'
+        );
     }
 }

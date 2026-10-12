@@ -224,8 +224,8 @@ width: 130px;
             border-radius: var(--ds-radius-xl);
             box-shadow: var(--ds-shadow-card);
             overflow: hidden;
-            min-height: 620px;
-            max-height: 620px;
+            min-height: 0;
+            max-height: none;
             display: flex;
             flex-direction: column;
             position: relative;
@@ -239,16 +239,48 @@ width: 130px;
         }
 
         .login-card .card-body {
-            padding: 2.5rem;
+            padding: 1.5rem 2.5rem 2.5rem;
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
         }
 
-        .login-card .alert-container {
-            min-height: 100px;
-            margin-bottom: 1rem;
+        .login-card .alert-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .login-alert {
+            border-radius: var(--ds-radius-md);
+            padding: 0.85rem 1rem;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin: 0;
+            border: 1px solid transparent;
+        }
+
+        .login-alert.flash-info,
+        .login-alert.alert-info {
+            background: rgba(29, 78, 216, 0.08);
+            border-color: rgba(29, 78, 216, 0.18);
+            color: #1d4ed8;
+        }
+
+        .login-alert.flash-success,
+        .login-alert.alert-success {
+            background: rgba(22, 163, 74, 0.1);
+            border-color: rgba(22, 163, 74, 0.2);
+            color: #15803d;
+        }
+
+        .login-alert.flash-error,
+        .login-alert.alert-danger {
+            background: rgba(220, 38, 38, 0.08);
+            border-color: rgba(220, 38, 38, 0.15);
+            color: #b91c1c;
         }
 
         .alert-danger {
@@ -256,18 +288,14 @@ width: 130px;
             border: 1px solid rgba(220, 38, 38, 0.15);
             color: #b91c1c;
             border-radius: var(--ds-radius-md);
-            padding: 1.25rem;
-            font-size: 0.95rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.05);
+            padding: 0.85rem 1rem;
+            font-size: 0.9rem;
+            margin: 0;
         }
 
         .login-card .card-header {
             border: none;
-            padding: 3rem 2.5rem 1.25rem;
+            padding: 2.5rem 2.5rem 0.75rem;
             background: transparent;
             text-align: left;
         }
@@ -417,11 +445,15 @@ width: 130px;
             color: white;
             font-weight: 600;
             border-radius: var(--ds-radius-md);
-            padding: 0.5rem 1rem;
-            min-height: 40px;
+            padding: 0.65rem 1rem;
+            min-height: 44px;
             border: none;
-            transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1), opacity 150ms ease;
             box-shadow: var(--ds-shadow-card);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .btn-signin:hover {
@@ -438,10 +470,22 @@ width: 130px;
             box-shadow: 0 0 0 2px var(--ds-surface), 0 0 0 4px var(--ds-brand-500);
         }
 
+        .btn-signin:disabled {
+            opacity: 0.72;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-signin .spinner-border {
+            width: 1rem;
+            height: 1rem;
+            border-width: 0.15em;
+        }
+
         .button-container {
             display: flex;
             justify-content: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.5rem;
         }
 
         @keyframes cardFadeIn {
@@ -560,27 +604,30 @@ width: 130px;
                             <p class="card-text">Sign in to your account to continue</p>
                         </div>
                         <div class="card-body">
-                            <form action="{{ route('login.submit') }}" method="POST">
+                            <form id="loginForm" action="{{ route('login.submit') }}" method="POST">
                                 @csrf
 
-                                @if(session('info'))
-                                    <div class="flash-message flash-info">{{ session('info') }}</div>
-                                @endif
+                                @if(session('info') || session('success') || session('error') || $errors->any())
+                                    <div class="alert-stack">
+                                        @if(session('info'))
+                                            <div class="login-alert flash-info" role="status">{{ session('info') }}</div>
+                                        @endif
 
-                                @if(session('success'))
-                                    <div class="flash-message flash-success">{{ session('success') }}</div>
-                                @endif
+                                        @if(session('success'))
+                                            <div class="login-alert flash-success" role="status">{{ session('success') }}</div>
+                                        @endif
 
-                                @if(session('error'))
-                                    <div class="flash-message flash-error">{{ session('error') }}</div>
-                                @endif
+                                        @if(session('error'))
+                                            <div class="login-alert flash-error" role="alert">{{ session('error') }}</div>
+                                        @endif
 
-                                @if ($errors->any())
-                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                        @foreach ($errors->all() as $error)
-                                            <div>{{ $error }}</div>
-                                        @endforeach
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                        @if ($errors->any())
+                                            <div class="login-alert alert-danger" role="alert">
+                                                @foreach ($errors->all() as $error)
+                                                    <div>{{ $error }}</div>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </div>
                                 @endif
 
@@ -594,6 +641,7 @@ width: 130px;
                                         placeholder="name@example.com"
                                         value="{{ old('email') }}"
                                         required
+                                        autocomplete="username"
                                     >
                                     @error('email')
                                         <div class="error-message">{{ $message }}</div>
@@ -610,11 +658,13 @@ width: 130px;
                                             class="form-control @error('password') is-invalid @enderror"
                                             placeholder="••••••••"
                                             required
+                                            autocomplete="current-password"
                                         >
                                         <button
                                             type="button"
                                             class="password-toggle"
                                             onclick="togglePassword()"
+                                            aria-label="Show or hide password"
                                         >
                                             <i class="bi bi-eye" id="eyeIcon"></i>
                                         </button>
@@ -640,7 +690,10 @@ width: 130px;
                                 </div>
 
                                 <div class="button-container">
-                                    <button type="submit" class="btn btn-signin">Sign In</button>
+                                    <button type="submit" class="btn btn-signin" id="loginSubmitBtn">
+                                        <span class="btn-label">Sign In</span>
+                                        <span class="spinner-border text-light d-none" role="status" aria-hidden="true"></span>
+                                    </button>
                                 </div>
                             </form>
 
@@ -666,6 +719,16 @@ width: 130px;
                 eyeIcon.classList.add('bi-eye');
             }
         }
+
+        document.getElementById('loginForm')?.addEventListener('submit', () => {
+            const btn = document.getElementById('loginSubmitBtn');
+            if (!btn || btn.disabled) return;
+            btn.disabled = true;
+            const label = btn.querySelector('.btn-label');
+            const spinner = btn.querySelector('.spinner-border');
+            if (label) label.textContent = 'Signing in…';
+            spinner?.classList.remove('d-none');
+        });
 
         const phoneCharacter = document.querySelector('.phone-character');
         const loginCard = document.querySelector('.login-card');

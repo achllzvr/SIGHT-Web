@@ -385,81 +385,139 @@
         .modal {
             background: white;
             border-radius: var(--ds-radius-lg);
-            padding: 24px;
-            min-width: 500px;
-            max-width: 90%;
+            padding: 0;
+            min-width: min(560px, 92vw);
+            max-width: 92vw;
             max-height: 90vh;
-            overflow-y: auto;
+            overflow: hidden;
             box-shadow: 0 4px 32px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
         }
 
         .modal-header {
-            margin-bottom: 16px;
+            margin: 0;
+            padding: 1.25rem 1.5rem 0.75rem;
+            border-bottom: 1px solid #eef2f0;
         }
 
         .modal-header h3 {
-            font-size: 18px;
+            font-size: 1.125rem;
             font-weight: 700;
             color: var(--ds-text);
+            margin: 0;
+        }
+
+        .modal-header p {
+            margin: 0.35rem 0 0;
+            font-size: 0.875rem;
+            color: #6b7280;
         }
 
         .modal-body {
-            margin-bottom: 16px;
+            margin: 0;
+            padding: 1.25rem 1.5rem;
+            overflow-y: auto;
         }
 
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
+            gap: 1rem 0.85rem;
+            margin-bottom: 0;
         }
 
         .form-grid.edit {
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
         }
 
         .form-group label {
-            font-size: 13px;
+            font-size: 0.8125rem;
             font-weight: 600;
             color: #374151;
-            margin-bottom: 4px;
+            margin: 0;
         }
 
         .form-group input,
         .form-group select {
-            padding: 10px;
+            padding: 0.7rem 0.9rem;
             border: 1px solid #d1d5db;
-            border-radius: 9999px;
-            font-size: 13px;
+            border-radius: 10px;
+            font-size: 0.9375rem;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
             background: #ffffff;
+            min-height: 42px;
+            width: 100%;
         }
 
         .form-group input:focus,
         .form-group select:focus {
             border-color: #295c4a;
+            box-shadow: 0 0 0 3px rgba(41, 92, 74, 0.15);
         }
 
         .modal-footer {
             display: flex;
-            gap: 8px;
+            gap: 0.5rem;
             justify-content: flex-end;
+            padding: 0.85rem 1.5rem 1.25rem;
+            border-top: 1px solid #eef2f0;
+            background: #fafafa;
         }
 
         .modal-footer button {
-            padding: 10px 20px;
+            padding: 0.65rem 1.15rem;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 0.875rem;
             transition: all 0.2s;
+            min-height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        .modal-footer button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-spinner {
+            width: 0.95rem;
+            height: 0.95rem;
+            border: 2px solid rgba(255,255,255,0.35);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: lumiSpin 0.7s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes lumiSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        .confirm-modal .modal {
+            min-width: min(420px, 92vw);
+        }
+
+        .confirm-modal .modal-body {
+            font-size: 0.95rem;
+            color: #374151;
+            line-height: 1.5;
         }
 
         .btn-primary {
@@ -535,8 +593,18 @@
         }
 
         .form-section__icon i {
-            display: block;
+            display: inline-block !important;
             line-height: 1;
+            font-family: "bootstrap-icons" !important;
+            font-style: normal;
+            font-weight: normal !important;
+            font-variant: normal;
+            text-transform: none;
+            speak: never;
+            -webkit-font-smoothing: antialiased;
+            visibility: visible !important;
+            opacity: 1 !important;
+            color: inherit;
         }
 
         .form-section__heading {
@@ -916,6 +984,23 @@
             </template>
         </div>
 
+        <div class="modal-overlay confirm-modal" :class="{ active: confirmDialog.open }" @keydown.escape.window="cancelConfirm()">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle">
+                <div class="modal-header">
+                    <h3 id="confirmDialogTitle" x-text="confirmDialog.title"></h3>
+                </div>
+                <div class="modal-body" x-text="confirmDialog.message"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" @click="cancelConfirm()" :disabled="confirmDialog.busy">Cancel</button>
+                    <button type="button" class="btn-primary" @click="acceptConfirm()" :disabled="confirmDialog.busy">
+                        <span x-show="!confirmDialog.busy" x-text="confirmDialog.confirmLabel"></span>
+                        <span x-show="confirmDialog.busy" class="btn-spinner" aria-hidden="true"></span>
+                        <span x-show="confirmDialog.busy">Working…</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="tabs">
             <div id="tab-indicator" class="tab-indicator"></div>
             <div class="tab active" onclick="showSection(this, 'professionals')">Professionals</div>
@@ -981,78 +1066,51 @@
                     <div class="modal">
                         <div class="modal-header">
                             <h3>Add New Professional</h3>
+                            <p>Invite a clinician. Required fields are marked with an asterisk.</p>
                         </div>
                         <div class="modal-body">
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label>First Name</label>
-                                    <input 
-                                        type="text" 
-                                        placeholder="First Name"
-                                        x-model="newProfessional.first_name"
-                                    >
+                                    <label>First Name *</label>
+                                    <input type="text" placeholder="First name" x-model="newProfessional.first_name">
                                 </div>
                                 <div class="form-group">
-                                    <label>Last Name</label>
-                                    <input 
-                                        type="text" 
-                                        placeholder="Last Name"
-                                        x-model="newProfessional.last_name"
-                                    >
+                                    <label>Last Name *</label>
+                                    <input type="text" placeholder="Last name" x-model="newProfessional.last_name">
                                 </div>
-                                <div class="form-group">
-                                    <label>Email</label>
-                                    <input 
-                                        type="email"
-                                        placeholder="Email"
-                                        x-model="newProfessional.email"
-                                    >
+                                <div class="form-group full-width">
+                                    <label>Email *</label>
+                                    <input type="email" placeholder="name@clinic.com" x-model="newProfessional.email">
                                 </div>
                                 <div class="form-group">
                                     <label>Phone</label>
-                                    <input 
-                                        type="text"
-                                        placeholder="Phone"
-                                        x-model="newProfessional.phone"
-                                    >
+                                    <input type="text" placeholder="Phone" x-model="newProfessional.phone">
                                 </div>
                                 <div class="form-group">
                                     <label>Specialty</label>
-                                    <input 
-                                        type="text"
-                                        placeholder="Specialty"
-                                        x-model="newProfessional.specialty"
-                                    >
+                                    <input type="text" placeholder="Specialty" x-model="newProfessional.specialty">
                                 </div>
                                 <div class="form-group">
-                                    <label>Clinic</label>
-                                    <input 
-                                        type="text"
-                                        placeholder="Clinic"
-                                        x-model="newProfessional.clinic"
-                                    >
-                                </div>
-                                <div class="form-group">
-                                    <label>License</label>
-                                    <input 
-                                        type="text"
-                                        placeholder="License Number"
-                                        x-model="newProfessional.license_number"
-                                    >
+                                    <label>Clinic *</label>
+                                    <input type="text" placeholder="Clinic" x-model="newProfessional.clinic">
                                 </div>
                                 <div class="form-group">
                                     <label>Location</label>
-                                    <input 
-                                        type="text"
-                                        placeholder="Location"
-                                        x-model="newProfessional.location"
-                                    >
+                                    <input type="text" placeholder="Location" x-model="newProfessional.location">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>License Number</label>
+                                    <input type="text" placeholder="License number" x-model="newProfessional.license_number">
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button class="btn-primary" @click="addProfessional()">Add</button>
-                            <button class="btn-secondary" @click="showAddModal = false">Cancel</button>
+                            <button type="button" class="btn-secondary" @click="showAddModal = false" :disabled="isSubmittingProfessional">Cancel</button>
+                            <button type="button" class="btn-primary" @click="addProfessional()" :disabled="isSubmittingProfessional">
+                                <span x-show="!isSubmittingProfessional">Add</span>
+                                <span x-show="isSubmittingProfessional" class="btn-spinner" aria-hidden="true"></span>
+                                <span x-show="isSubmittingProfessional">Adding…</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1062,29 +1120,21 @@
                     <div class="modal" x-show="editingProfessional !== null">
                         <div class="modal-header">
                             <h3>Edit Professional</h3>
+                            <p>Update account details and status.</p>
                         </div>
                         <div class="modal-body" x-show="editingProfessional !== null">
                             <div class="form-grid edit">
                                 <div class="form-group">
                                     <label>First Name</label>
-                                    <input 
-                                        type="text"
-                                        x-model="editingProfessional.first_name"
-                                    >
+                                    <input type="text" x-model="editingProfessional.first_name">
                                 </div>
                                 <div class="form-group">
                                     <label>Last Name</label>
-                                    <input 
-                                        type="text"
-                                        x-model="editingProfessional.last_name"
-                                    >
+                                    <input type="text" x-model="editingProfessional.last_name">
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group full-width">
                                     <label>Email</label>
-                                    <input 
-                                        type="email"
-                                        x-model="editingProfessional.email"
-                                    >
+                                    <input type="email" x-model="editingProfessional.email">
                                 </div>
                                 <div class="form-group">
                                     <label>Status</label>
@@ -1111,15 +1161,19 @@
                                     <label>Specialty</label>
                                     <input type="text" x-model="editingProfessional.specialty">
                                 </div>
-                                <div class="form-group" style="grid-column: span 2;">
+                                <div class="form-group full-width">
                                     <label>License Number</label>
                                     <input type="text" x-model="editingProfessional.license_number">
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button class="btn-save" @click="saveEdit()">Save</button>
-                            <button class="btn-secondary" @click="editingProfessional = null">Cancel</button>
+                            <button type="button" class="btn-secondary" @click="editingProfessional = null" :disabled="isSubmittingProfessional">Cancel</button>
+                            <button type="button" class="btn-save" @click="saveEdit()" :disabled="isSubmittingProfessional">
+                                <span x-show="!isSubmittingProfessional">Save</span>
+                                <span x-show="isSubmittingProfessional" class="btn-spinner" aria-hidden="true"></span>
+                                <span x-show="isSubmittingProfessional">Saving…</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1349,8 +1403,16 @@
                     </div>
                 </div>
 
-                <button type="submit" class="save-button">Save All Settings</button>
+                <button type="submit" class="save-button" id="settingsSaveBtn">Save All Settings</button>
             </form>
+            <script>
+                document.querySelector('.settings-form')?.addEventListener('submit', (e) => {
+                    const btn = document.getElementById('settingsSaveBtn');
+                    if (!btn || btn.disabled) return;
+                    btn.disabled = true;
+                    btn.textContent = 'Saving…';
+                });
+            </script>
         </div>
 
         <!-- Audit Logs Section -->
@@ -1437,6 +1499,15 @@
                 showAddAdminModal: false,
                 editingProfessional: null,
                 isSubmittingAdmin: false,
+                isSubmittingProfessional: false,
+                confirmDialog: {
+                    open: false,
+                    title: 'Confirm',
+                    message: '',
+                    confirmLabel: 'Confirm',
+                    busy: false,
+                    resolver: null,
+                },
                 newAdmin: {
                     first_name: '',
                     last_name: '',
@@ -1464,6 +1535,35 @@
                     setTimeout(() => {
                         this.toasts = this.toasts.filter(t => t.id !== id);
                     }, 3200);
+                },
+
+                askConfirm({ title = 'Confirm', message = '', confirmLabel = 'Confirm' } = {}) {
+                    return new Promise((resolve) => {
+                        this.confirmDialog = {
+                            open: true,
+                            title,
+                            message,
+                            confirmLabel,
+                            busy: false,
+                            resolver: resolve,
+                        };
+                    });
+                },
+
+                cancelConfirm() {
+                    if (this.confirmDialog.busy) return;
+                    const resolve = this.confirmDialog.resolver;
+                    this.confirmDialog.open = false;
+                    this.confirmDialog.resolver = null;
+                    if (resolve) resolve(false);
+                },
+
+                acceptConfirm() {
+                    if (this.confirmDialog.busy) return;
+                    const resolve = this.confirmDialog.resolver;
+                    this.confirmDialog.open = false;
+                    this.confirmDialog.resolver = null;
+                    if (resolve) resolve(true);
                 },
 
                 async loadProfessionals(page = 1) {
@@ -1542,6 +1642,7 @@
                 },
 
                 async addProfessional() {
+                    if (this.isSubmittingProfessional) return;
                     if (!this.newProfessional.first_name || !this.newProfessional.last_name || !this.newProfessional.email || !this.newProfessional.clinic) {
                         this.notify('error', 'Please fill in all required fields.');
                         return;
@@ -1558,6 +1659,7 @@
                         location: this.newProfessional.location
                     };
 
+                    this.isSubmittingProfessional = true;
                     try {
                         const response = await fetch('/admin/professionals', {
                             method: 'POST',
@@ -1579,7 +1681,6 @@
 
                             this.notify('success', data.message || 'Professional added. Login credentials sent by email.');
                         } else {
-                            // Display specific validation or server error messages
                             let errorMessage = data.message || 'Error adding professional';
                             if (data.errors) {
                                 errorMessage = Object.values(data.errors).flat().join('\n');
@@ -1589,6 +1690,8 @@
                     } catch (error) {
                         console.error('Submission Error:', error);
                         this.notify('error', 'Failed to connect to the server. Please try again.');
+                    } finally {
+                        this.isSubmittingProfessional = false;
                     }
                 },
 
@@ -1619,79 +1722,91 @@
                 },
 
                 async saveEdit() {
-                    if (this.editingProfessional) {
-                        try {
-                            const payload = {
-                                first_name: this.editingProfessional.first_name,
-                                last_name: this.editingProfessional.last_name,
-                                email: this.editingProfessional.email,
-                                phone: this.editingProfessional.phone,
-                                clinic: this.editingProfessional.clinic,
-                                specialty: this.editingProfessional.specialty,
-                                license_number: this.editingProfessional.license_number,
-                                location: this.editingProfessional.location,
-                                status: this.normalizeStatus(this.editingProfessional.status)
-                            };
+                    if (!this.editingProfessional || this.isSubmittingProfessional) return;
+                    this.isSubmittingProfessional = true;
+                    try {
+                        const payload = {
+                            first_name: this.editingProfessional.first_name,
+                            last_name: this.editingProfessional.last_name,
+                            email: this.editingProfessional.email,
+                            phone: this.editingProfessional.phone,
+                            clinic: this.editingProfessional.clinic,
+                            specialty: this.editingProfessional.specialty,
+                            license_number: this.editingProfessional.license_number,
+                            location: this.editingProfessional.location,
+                            status: this.normalizeStatus(this.editingProfessional.status)
+                        };
 
-                            const response = await fetch(`/admin/professionals/${this.editingProfessional.id}`, {
-                                method: 'PUT',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json',
-                                    'X-CSRF-TOKEN': this.csrfToken
-                                },
-                                body: JSON.stringify(payload)
-                            });
+                        const response = await fetch(`/admin/professionals/${this.editingProfessional.id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': this.csrfToken
+                            },
+                            body: JSON.stringify(payload)
+                        });
 
-                            const data = await response.json();
-                            if (!response.ok || !data.success) {
-                                let errorMessage = data.message || 'Update failed';
-                                if (data.errors) {
-                                    errorMessage = Object.values(data.errors).flat().join('\n');
-                                }
-                                throw new Error(errorMessage);
+                        const data = await response.json();
+                        if (!response.ok || !data.success) {
+                            let errorMessage = data.message || 'Update failed';
+                            if (data.errors) {
+                                errorMessage = Object.values(data.errors).flat().join('\n');
                             }
-
-                            const updated = data.professional || {
-                                ...this.editingProfessional,
-                                name: `${payload.first_name} ${payload.last_name}`.trim(),
-                                status: payload.status
-                            };
-
-                            const index = this.professionals.findIndex(p => p.id === this.editingProfessional.id);
-                            if (index !== -1) {
-                                this.professionals[index] = updated;
-                            }
-
-                            this.filteredProfessionals = [...this.professionals];
-                            this.editingProfessional = null;
-                            this.notify('success', data.message || 'Professional updated successfully.');
-                        } catch (error) {
-                            this.notify('error', error.message || 'Failed to save changes to the server.');
+                            throw new Error(errorMessage);
                         }
+
+                        const updated = data.professional || {
+                            ...this.editingProfessional,
+                            name: `${payload.first_name} ${payload.last_name}`.trim(),
+                            status: payload.status
+                        };
+
+                        const index = this.professionals.findIndex(p => p.id === this.editingProfessional.id);
+                        if (index !== -1) {
+                            this.professionals[index] = updated;
+                        }
+
+                        this.filteredProfessionals = [...this.professionals];
+                        this.editingProfessional = null;
+                        this.notify('success', data.message || 'Professional updated successfully.');
+                    } catch (error) {
+                        this.notify('error', error.message || 'Failed to save changes to the server.');
+                    } finally {
+                        this.isSubmittingProfessional = false;
                     }
                 },
 
                 async deleteProfessional(id) {
-                    if (confirm('Are you sure you want to delete this professional?')) {
-                        try {
-                            const response = await fetch(`/admin/professionals/${id}`, {
-                                method: 'DELETE',
-                                headers: { 'X-CSRF-TOKEN': this.csrfToken }
-                            });
-                            
-                            if (!response.ok) throw new Error('Delete failed');
-                            await this.loadProfessionals(this.pagination.current_page);
-                            this.notify('success', 'Professional deleted successfully.');
-                        } catch (error) {
-                            this.notify('error', 'Failed to delete from server.');
-                        }
+                    const confirmed = await this.askConfirm({
+                        title: 'Delete professional',
+                        message: 'Are you sure you want to delete this professional? This cannot be undone.',
+                        confirmLabel: 'Delete',
+                    });
+                    if (!confirmed) return;
+
+                    try {
+                        const response = await fetch(`/admin/professionals/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'X-CSRF-TOKEN': this.csrfToken }
+                        });
+                        
+                        if (!response.ok) throw new Error('Delete failed');
+                        await this.loadProfessionals(this.pagination.current_page);
+                        this.notify('success', 'Professional deleted successfully.');
+                    } catch (error) {
+                        this.notify('error', 'Failed to delete from server.');
                     }
                 },
 
                 async toggleStatus(user, type) {
                     const action = this.normalizeStatus(user.status) === 'active' ? 'disable' : 'enable';
-                    if (!confirm(`Are you sure you want to ${action} this account?`)) return;
+                    const confirmed = await this.askConfirm({
+                        title: `${action.charAt(0).toUpperCase() + action.slice(1)} account`,
+                        message: `Are you sure you want to ${action} this account?`,
+                        confirmLabel: action.charAt(0).toUpperCase() + action.slice(1),
+                    });
+                    if (!confirmed) return;
 
                     try {
                         const response = await fetch(`/admin/users/${user.id}/toggle-status`, {

@@ -36,10 +36,14 @@ class RuleEngineService
             'role' => 'Guardian',
         ]);
 
-        GuardianProfile::create([
-            'user_id' => $user->user_id,
-            'contact_number' => $payload['contact_number'] ?? null,
-        ]);
+        $user = User::ensurePrimaryKey($user, (string) $payload['email']);
+
+        if (! GuardianProfile::where('user_id', $user->user_id)->exists()) {
+            GuardianProfile::create([
+                'user_id' => $user->user_id,
+                'contact_number' => $payload['contact_number'] ?? null,
+            ]);
+        }
 
         return $this->response('success', 'Guardian registered successfully', [
             'user' => [
@@ -75,6 +79,10 @@ class RuleEngineService
                 'password_hash' => $passwordHash,
                 'role' => 'Child',
             ]);
+
+            if (empty($childUser->user_id)) {
+                throw new \RuntimeException('Child user primary key missing after create.');
+            }
 
             // Use the mobile-provided login code if it exists, otherwise generate a unique one
             $loginCode = $payload['mobile_login_code'] ?? $this->generateUniqueLoginCode();

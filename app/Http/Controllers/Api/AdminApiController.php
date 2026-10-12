@@ -68,7 +68,11 @@ class AdminApiController extends Controller
             'role' => 'Doctor',
         ]);
 
+        $user = User::ensurePrimaryKey($user, $request->email);
+
+        $doctorId = max(1, ((int) \Illuminate\Support\Facades\DB::table('doctor_profile')->max('doctor_id')) + 1);
         $doctor = DoctorProfile::create([
+            'doctor_id' => $doctorId,
             'user_id' => $user->user_id,
             'license_number' => $request->license_number,
             'is_validated' => 1,

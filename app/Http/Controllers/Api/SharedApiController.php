@@ -61,6 +61,14 @@ class SharedApiController extends Controller
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
+        // Guardians must complete email OTP before mobile API access.
+        if (strtolower((string) $user->role) === 'guardian' && is_null($user->email_verified_at)) {
+            return response()->json([
+                'message' => 'Verify your email before signing in.',
+                'email_verified' => false,
+            ], 403);
+        }
+
         $user->update([
             'failed_login_attempts' => 0,
             'locked_until' => null,
@@ -80,6 +88,7 @@ class SharedApiController extends Controller
                 'first_name' => $user->first_name ?? null,
                 'last_name' => $user->last_name ?? null,
                 'display_name' => $user->display_name,
+                'email_verified' => !is_null($user->email_verified_at),
             ],
             'token' => $token,
         ], 200);

@@ -697,7 +697,14 @@ body.lumi-arcade {
 }
 
 .lumi-arcade .form-section__icon i {
+  display: inline-block !important;
   line-height: 1 !important;
+  font-family: "bootstrap-icons" !important;
+  font-style: normal !important;
+  font-weight: normal !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: inherit !important;
 }
 
 .lumi-arcade .presence-online {

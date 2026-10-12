@@ -5,16 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pending Verification</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     @include('partials.ds-head')
     @include('partials.ds-arcade-head')
 </head>
-<body class="lumi-arcade bg-light d-flex align-items-center justify-content-center" style="height:100vh;">
+<body class="lumi-arcade bg-light d-flex align-items-center justify-content-center" style="min-height:100vh;">
     <div class="card shadow p-4" style="max-width: 400px;">
         <div class="text-center mb-3">
-            <i class="bi bi-hourglass-split" style="font-size: 2.5rem; color: #527267;"></i>
+            <i class="bi bi-hourglass-split" style="font-size: 2.5rem; color: #527267;" aria-hidden="true"></i>
             <h2 class="mt-2">Pending Verification</h2>
         </div>
-        <p class="text-center">Your account is pending email verification by the administrator. You will be notified once your account is verified and you can access the dashboard.</p>
+        <p class="text-center mb-0">Your account is pending email verification by the administrator. You will be notified once your account is verified and you can access the dashboard.</p>
         <div class="text-center mt-4">
             <a href="/logout" class="btn btn-outline-secondary">Logout</a>
         </div>

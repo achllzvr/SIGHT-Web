@@ -339,7 +339,7 @@
         }
 
         .scroll-animate.animate {
-            animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            animation: fadeInUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
         .scroll-animate-left {
@@ -348,7 +348,7 @@
         }
 
         .scroll-animate-left.animate {
-            animation: fadeInLeft 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            animation: fadeInLeft 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
         .scroll-animate-right {
@@ -357,7 +357,7 @@
         }
 
         .scroll-animate-right.animate {
-            animation: fadeInRight 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            animation: fadeInRight 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
         .scroll-animate-scale {
@@ -366,12 +366,83 @@
         }
 
         .scroll-animate-scale.animate {
-            animation: scaleIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            animation: scaleIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .scroll-animate-delay-1.animate { animation-delay: 0.08s; }
+        .scroll-animate-delay-2.animate { animation-delay: 0.16s; }
+        .scroll-animate-delay-3.animate { animation-delay: 0.24s; }
+
+        .features-section {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            border-radius: 1.25rem;
+            height: 100%;
+            min-height: 280px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .feature-card__title {
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+        }
+
+        .feature-card__copy {
+            color: #6b7280;
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.45;
+        }
+
+        .sign-in-fab {
+            position: fixed;
+            right: 1.5rem;
+            bottom: 1.5rem;
+            z-index: 200;
+            width: 3.25rem;
+            height: 3.25rem;
+            border-radius: 9999px;
+            border: none;
+            background: #527267;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(82, 114, 103, 0.35);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(12px);
+            transition: opacity 0.25s ease, transform 0.25s ease, background 0.2s ease;
+            cursor: pointer;
+        }
+
+        .sign-in-fab.is-visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .sign-in-fab:hover {
+            background: var(--lumi-purple);
+        }
+
+        .sign-in-fab:focus-visible {
+            outline: 2px solid #8168ab;
+            outline-offset: 3px;
         }
 
         @media (max-width: 992px) {
             .mascot-side { display: none; }
             .bg-lumi-text { font-size: 40vw; top: -28%; }
+            .feature-card { min-height: 220px; }
+            .sign-in-fab { right: 1rem; bottom: 1rem; }
         }
     </style>
 </head>
@@ -410,75 +481,59 @@
         <a href="{{ Route::has('login') ? route('login') : '#' }}" class="bottom-pill">Sign In</a>
     </section>
 
-    <div class="container-fluid px-4 px-md-5 py-5">
-        <div class="row g-4 mb-5">
-            <!-- Large Left Card -->
-            <div class="col-md-6 scroll-animate-left">
-                <div class="p-5 rounded-4 h-100 position-relative overflow-hidden" style="background: var(--lumi-mint); display: flex; flex-direction: column; justify-content: center; min-height: 240px;">
-                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 500px; height: 500px; background: radial-gradient(circle, rgba(255, 182, 249, 0.7) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
-                    <img src="{{ asset('assets/characters.png') }}" alt="LUMI Character" style="width: 680px; height: auto; position: absolute; bottom: 0; left: 0; z-index: 1;">
-                    <div style="position: absolute; top: 3rem; left: 3rem; z-index: 2; text-align: left;">
-                        <h4 class="text-white fw-bold mb-0" style="font-family: 'Poppins', sans-serif;">Gamified mascot <br> encourages safe <br>screen habits</h4>
+    <div class="container-fluid px-4 px-md-5 py-5 features-section">
+        <div class="row g-4 align-items-stretch">
+            <div class="col-lg-6 scroll-animate-left">
+                <div class="feature-card p-4 p-md-5" style="background: var(--lumi-mint);">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(500px, 90%); height: min(500px, 90%); background: radial-gradient(circle, rgba(255, 182, 249, 0.7) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+                    <img src="{{ asset('assets/characters.png') }}" alt="LUMI Character" style="width: min(680px, 120%); height: auto; position: absolute; bottom: 0; left: 0; z-index: 1;">
+                    <div style="position: relative; z-index: 2; max-width: 16rem;">
+                        <h4 class="text-white fw-bold mb-0" style="font-family: var(--ds-font-sans, 'Poppins', sans-serif); line-height: 1.35;">Gamified mascot encourages safe screen habits</h4>
                     </div>
                 </div>
             </div>
 
-            <!-- Tall Middle Card -->
-          <div class="col-md-3 scroll-animate">
-    <div class="rounded-4 h-100 d-flex align-items-end justify-content-center" 
-         style="background: #527267; min-height: 360px;">
-        
-        <div class="p-4 rounded-4 text-start mb-3 d-flex flex-column justify-content-end"
-             style="background: #ffffffa1; width: 80%; height:55%;">
-             
-            <h4 class="fw-semi bold fs-6">SMART ALERTS</h4>
-            <p class="text-muted mb-0">
-                Gentle reminders when eyes need rest or screen is too close.
-            </p>
-        </div>
-    </div>
-</div>
-
-            <!-- Large Right Card -->
-           <div class="col-md-3 scroll-animate-right">
-    <div class="p-5 rounded-4 h-100 d-flex align-items-center justify-content-center"
-         style="background:#E3F2E6; min-height:240px;">
-
-        <div style="
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    position: relative;">
-    <h6 class="fw mb-2" style="position: absolute; left: 5rem; top: -3rem;">HOW LUMI WORKS </h6>
-
-    <p class="text-muted mb-0 small"  style=" right: 1rem; top: 0;" >
-        When unsafe behavior is detected, <br>
-        LUMI gently reminds users to rest, <br>
-        blink, or adjust distance.
-    </p>
-</div>
-
-    </div>
-</div>
-
-        <!-- Wide Bottom Card -->
-        <div class="row mt-5">
-            <div class="col-12 scroll-animate-scale">
-                <div class="rounded-4 text-center overflow-hidden position-relative" style="background: #B2C3B5; min-height: 240px;">
-                    <div style="position: absolute; top: 3rem; left: 3rem; z-index: 10;">
-                        <h4 class=" mb-0 text-white">GUARDIAN DASHBOARD</h4>
+            <div class="col-md-6 col-lg-3 scroll-animate scroll-animate-delay-1">
+                <div class="feature-card d-flex align-items-end justify-content-center p-3" style="background: #527267;">
+                    <div class="p-4 rounded-4 text-start d-flex flex-column justify-content-end" style="background: rgba(255,255,255,0.88); width: 88%;">
+                        <h4 class="feature-card__title">Smart Alerts</h4>
+                        <p class="feature-card__copy">Gentle reminders when eyes need rest or the screen is too close.</p>
                     </div>
-                    <div style="position: absolute; bottom: 3rem; right: 3rem; z-index: 10; text-align: right;">
-                        <p class="text-white mb-0">Parents monitor child's screen habits.</p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 scroll-animate-right scroll-animate-delay-2">
+                <div class="feature-card d-flex align-items-center p-4" style="background: #E3F2E6;">
+                    <div>
+                        <h4 class="feature-card__title">How LUMI Works</h4>
+                        <p class="feature-card__copy">When unsafe behavior is detected, LUMI gently reminds users to rest, blink, or adjust distance.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 scroll-animate-scale scroll-animate-delay-3">
+                <div class="feature-card text-center" style="background: #B2C3B5; min-height: 240px;">
+                    <div class="position-absolute top-0 start-0 p-4 p-md-5 text-start" style="z-index: 10;">
+                        <h4 class="mb-0 text-white fw-bold">Guardian Dashboard</h4>
+                    </div>
+                    <div class="position-absolute bottom-0 end-0 p-4 p-md-5 text-end" style="z-index: 10;">
+                        <p class="text-white mb-1">Parents monitor child's screen habits.</p>
                         <p class="text-white mb-0">View blink rate, distance, and usage reports.</p>
                     </div>
-                    <img src="{{ asset('assets/parentsphone.png') }}" alt="Parents" style="width: 30%; height: 240px; object-fit: cover; display: block; margin: 0 auto;">
+                    <img src="{{ asset('assets/parentsphone.png') }}" alt="Parents using LUMI" style="width: min(30%, 280px); height: 240px; object-fit: cover; display: block; margin: 0 auto;">
                 </div>
             </div>
         </div>
     </div>
 
+    <button type="button" class="sign-in-fab" id="signInFab" aria-label="Jump to Sign In">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 5v14M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
+
     <footer class="text-center py-4 text-muted border-top">
-        <p>&copy; 2026 LUMI Eye Health. All rights reserved.</p>
+        <p class="mb-0">&copy; 2026 LUMI Eye Health. All rights reserved.</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -512,13 +567,15 @@
         const phoneWrapper = document.querySelector('.phone-wrapper');
         let intensity = 5;
 
-        phoneWrapper.addEventListener('mouseenter', () => {
-            intensity = 15; // Increase tilt intensity on hover
-        });
+        if (phoneWrapper) {
+            phoneWrapper.addEventListener('mouseenter', () => {
+                intensity = 15;
+            });
 
-        phoneWrapper.addEventListener('mouseleave', () => {
-            intensity = 5; // Revert to subtle tilt
-        });
+            phoneWrapper.addEventListener('mouseleave', () => {
+                intensity = 5;
+            });
+        }
         
         // Parallax effect on mouse move
         document.addEventListener('mousemove', (e) => {
@@ -542,5 +599,27 @@
         if (phoneCharacter) {
             phoneCharacter.style.filter = 'drop-shadow(0 20px 60px rgba(0, 0, 0, 0.1))';
         }
+
+        // FAB: show after scrolling past hero; jump to Sign In pill
+        const heroSection = document.querySelector('.hero-section');
+        const signInPill = document.querySelector('.bottom-pill');
+        const signInFab = document.getElementById('signInFab');
+
+        function updateFabVisibility() {
+            if (!heroSection || !signInFab) return;
+            const pastHero = window.scrollY > Math.max(heroSection.offsetHeight * 0.55, 280);
+            signInFab.classList.toggle('is-visible', pastHero);
+        }
+
+        window.addEventListener('scroll', updateFabVisibility, { passive: true });
+        window.addEventListener('resize', updateFabVisibility);
+        updateFabVisibility();
+
+        signInFab?.addEventListener('click', () => {
+            if (!signInPill) return;
+            signInPill.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            signInPill.focus?.({ preventScroll: true });
+        });
     </script>
 </body>
+</html>

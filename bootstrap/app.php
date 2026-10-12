@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\WebApiMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -16,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Allow same-origin web session auth to work on auth:sanctum API routes.
         $middleware->statefulApi();
+
+        $middleware->append(SecurityHeaders::class);
 
         $middleware->alias([
             'role' => CheckRole::class,

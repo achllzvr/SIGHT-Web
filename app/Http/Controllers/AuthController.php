@@ -486,6 +486,8 @@ class AuthController extends Controller
             'email_verified_at' => null, // Start as unverified
         ]);
 
+        $user = User::ensurePrimaryKey($user, $validated['email']);
+
         $doctorProfile = DoctorProfile::where('user_id', $user->user_id)->first();
         if ($doctorProfile) {
             $doctorProfile->phone = $validated['phone'];
@@ -496,7 +498,9 @@ class AuthController extends Controller
             $doctorProfile->is_validated = 0;
             $doctorProfile->save();
         } else {
+            $doctorId = ((int) \Illuminate\Support\Facades\DB::table('doctor_profile')->max('doctor_id')) + 1;
             DoctorProfile::create([
+                'doctor_id' => max(1, $doctorId),
                 'user_id' => $user->user_id,
                 'phone' => $validated['phone'],
                 'clinic' => $validated['clinic'],

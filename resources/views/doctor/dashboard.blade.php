@@ -259,6 +259,60 @@
         .lumi-arcade .visit-viewer .chart-grid {
             gap: 1.1rem;
         }
+
+        .ui-confirm-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            z-index: 1080;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .ui-confirm-overlay.is-open {
+            display: flex;
+        }
+        .ui-confirm-dialog {
+            background: #fff;
+            border-radius: 14px;
+            width: min(420px, 100%);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+            overflow: hidden;
+        }
+        .ui-confirm-dialog__header {
+            padding: 1.1rem 1.25rem 0.6rem;
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+        .ui-confirm-dialog__body {
+            padding: 0 1.25rem 1rem;
+            color: #4b5563;
+            font-size: 0.95rem;
+            line-height: 1.45;
+        }
+        .ui-confirm-dialog__footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            padding: 0.85rem 1.25rem 1.15rem;
+            background: #fafafa;
+            border-top: 1px solid #eef2f0;
+        }
+        .ui-toast {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1090;
+            background: #b91c1c;
+            color: #fff;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.15);
+            display: none;
+            max-width: min(360px, calc(100vw - 2rem));
+        }
+        .ui-toast.is-visible { display: block; }
     </style>
     @include('partials.ds-arcade-head')
     <style>
@@ -354,6 +408,17 @@
     </style>
 </head>
 <body class="lumi-arcade">
+<div id="uiConfirmOverlay" class="ui-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="uiConfirmTitle" hidden>
+    <div class="ui-confirm-dialog">
+        <div class="ui-confirm-dialog__header" id="uiConfirmTitle">Confirm</div>
+        <div class="ui-confirm-dialog__body" id="uiConfirmMessage"></div>
+        <div class="ui-confirm-dialog__footer">
+            <button type="button" class="btn btn-light btn-sm rounded-pill" id="uiConfirmCancel">Cancel</button>
+            <button type="button" class="btn btn-danger btn-sm rounded-pill" id="uiConfirmOk">Confirm</button>
+        </div>
+    </div>
+</div>
+<div id="uiToast" class="ui-toast" role="alert"></div>
 @php
     $hasSession = !empty($active) && !empty($sessionId);
     $hasTelemetry = !empty($dashboardData['has_data']);
@@ -801,24 +866,82 @@ if (!hasSession && window.Html5Qrcode) {
     });
 }
 
+function showUiToast(message) {
+    const el = document.getElementById('uiToast');
+    if (!el) return;
+    el.textContent = message;
+    el.classList.add('is-visible');
+    clearTimeout(showUiToast._timer);
+    showUiToast._timer = setTimeout(() => el.classList.remove('is-visible'), 3200);
+}
+
+function askUiConfirm({ title = 'Confirm', message = '', confirmLabel = 'Confirm' } = {}) {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('uiConfirmOverlay');
+        const titleEl = document.getElementById('uiConfirmTitle');
+        const messageEl = document.getElementById('uiConfirmMessage');
+        const okBtn = document.getElementById('uiConfirmOk');
+        const cancelBtn = document.getElementById('uiConfirmCancel');
+        if (!overlay || !okBtn || !cancelBtn) {
+            resolve(window.confirm(message || title));
+            return;
+        }
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        okBtn.textContent = confirmLabel;
+        overlay.hidden = false;
+        overlay.classList.add('is-open');
+
+        const finish = (value) => {
+            overlay.classList.remove('is-open');
+            overlay.hidden = true;
+            okBtn.removeEventListener('click', onOk);
+            cancelBtn.removeEventListener('click', onCancel);
+            overlay.removeEventListener('click', onBackdrop);
+            resolve(value);
+        };
+        const onOk = () => finish(true);
+        const onCancel = () => finish(false);
+        const onBackdrop = (e) => { if (e.target === overlay) finish(false); };
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+        overlay.addEventListener('click', onBackdrop);
+    });
+}
+
 document.getElementById('endVisitBtn')?.addEventListener('click', async () => {
-    if (!sessionId || !confirm('End this viewing session? The parent will be notified.')) return;
+    if (!sessionId) return;
+    const confirmed = await askUiConfirm({
+        title: 'End visit',
+        message: 'End this viewing session? The parent will be notified.',
+        confirmLabel: 'End Visit',
+    });
+    if (!confirmed) return;
     const btn = document.getElementById('endVisitBtn');
-    if (btn) btn.disabled = true;
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Ending…';
+    }
     try {
         const res = await fetch(`/doctor/access-sessions/${sessionId}/end`, {
             method: 'POST',
             headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
         });
         if (!res.ok) {
-            alert('Could not end the session. Please try again.');
-            if (btn) btn.disabled = false;
+            showUiToast('Could not end the session. Please try again.');
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'End Visit';
+            }
             return;
         }
         window.location.reload();
     } catch (_) {
-        alert('Network error while ending session.');
-        if (btn) btn.disabled = false;
+        showUiToast('Network error while ending session.');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'End Visit';
+        }
     }
 });
 

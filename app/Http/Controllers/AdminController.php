@@ -15,11 +15,13 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use App\Services\AuditLogService;
 
 class AdminController extends Controller
 {
     public function __construct(
         private readonly UserPresenceService $presence,
+        private readonly AuditLogService $auditLogService
     ) {
     }
     /**
@@ -592,15 +594,16 @@ class AdminController extends Controller
      */
     private function logAdminAction(string $action, string $targetEntity)
     {
-        $adminProfile = \App\Models\AdminProfile::where('user_id', Auth::id())->first();
-        
-        if ($adminProfile) {
-            \App\Models\AuditLog::create([
-                'admin_id' => $adminProfile->admin_id,
-                'action_taken' => $action,
-                'target_entity' => $targetEntity,
-                'ip_address' => request()->ip(),
-            ]);
-        }
+        $userId = Auth::id();
+        $adminProfileId = $this->auditLogService->resolveAdminProfileId($userId);
+
+        $this->auditLogService->logAdminAction(
+            $adminProfileId,
+            $action,
+            $targetEntity,
+            request()->ip(),
+            null,
+            $userId
+        );
     }
 }
