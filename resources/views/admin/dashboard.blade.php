@@ -386,13 +386,61 @@
             background: white;
             border-radius: var(--ds-radius-lg);
             padding: 0;
-            min-width: min(560px, 92vw);
+            min-width: min(640px, 92vw);
+            width: min(640px, 92vw);
             max-width: 92vw;
             max-height: 90vh;
             overflow: hidden;
             box-shadow: 0 4px 32px rgba(0,0,0,0.15);
             display: flex;
             flex-direction: column;
+        }
+
+        .modal.modal--wide {
+            min-width: min(760px, 94vw);
+            width: min(760px, 94vw);
+        }
+
+        .form-section-title {
+            grid-column: 1 / -1;
+            margin: 0.35rem 0 0;
+            padding-top: 0.85rem;
+            border-top: 1px solid #eef2f0;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #6b7280;
+        }
+
+        .form-section-title:first-child {
+            padding-top: 0;
+            border-top: none;
+            margin-top: 0;
+        }
+
+        .form-group.form-check-row {
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 0.65rem;
+        }
+
+        .form-check-row input[type="checkbox"] {
+            width: 1.05rem;
+            height: 1.05rem;
+            min-height: 0;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+            padding: 0;
+            accent-color: #295c4a;
+        }
+
+        .form-check-row > label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            line-height: 1.4;
+            margin: 0;
         }
 
         .modal-header {
@@ -967,9 +1015,11 @@
                 gap: 6px;
             }
 
-            .modal {
+            .modal,
+            .modal.modal--wide {
                 min-width: 95%;
-                padding: 18px;
+                width: 95%;
+                padding: 0;
             }
         }
     </style>
@@ -1063,19 +1113,20 @@
 
                 <!-- Add Modal -->
                 <div class="modal-overlay" :class="{ active: showAddModal }">
-                    <div class="modal">
+                    <div class="modal modal--wide">
                         <div class="modal-header">
                             <h3>Add New Professional</h3>
-                            <p>Invite a clinician. Required fields are marked with an asterisk.</p>
+                            <p>Invite a clinician. Fields marked with * are required.</p>
                         </div>
                         <div class="modal-body">
                             <div class="form-grid">
+                                <p class="form-section-title">Account</p>
                                 <div class="form-group">
-                                    <label>First Name *</label>
+                                    <label>First name *</label>
                                     <input type="text" placeholder="First name" x-model="newProfessional.first_name">
                                 </div>
                                 <div class="form-group">
-                                    <label>Last Name *</label>
+                                    <label>Last name *</label>
                                     <input type="text" placeholder="Last name" x-model="newProfessional.last_name">
                                 </div>
                                 <div class="form-group full-width">
@@ -1084,23 +1135,50 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Phone</label>
-                                    <input type="text" placeholder="Phone" x-model="newProfessional.phone">
+                                    <input type="text" placeholder="Phone number" x-model="newProfessional.phone">
                                 </div>
                                 <div class="form-group">
                                     <label>Specialty</label>
-                                    <input type="text" placeholder="Specialty" x-model="newProfessional.specialty">
+                                    <input type="text" placeholder="e.g. Pediatric optometry" x-model="newProfessional.specialty">
                                 </div>
                                 <div class="form-group">
-                                    <label>Clinic *</label>
-                                    <input type="text" placeholder="Clinic" x-model="newProfessional.clinic">
+                                    <label>Clinic name *</label>
+                                    <input type="text" placeholder="Clinic or practice name" x-model="newProfessional.clinic">
                                 </div>
                                 <div class="form-group">
-                                    <label>Location</label>
-                                    <input type="text" placeholder="Location" x-model="newProfessional.location">
+                                    <label>City / area</label>
+                                    <input type="text" placeholder="City or area" x-model="newProfessional.location">
                                 </div>
                                 <div class="form-group full-width">
-                                    <label>License Number</label>
-                                    <input type="text" placeholder="License number" x-model="newProfessional.license_number">
+                                    <label>License number</label>
+                                    <input type="text" placeholder="Professional license number" x-model="newProfessional.license_number">
+                                </div>
+
+                                <p class="form-section-title">Clinic listing</p>
+                                <div class="form-group full-width">
+                                    <label>Clinic address</label>
+                                    <input type="text" id="admin-add-clinic-address" placeholder="Street, barangay, city" x-model="newProfessional.clinic_address">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Hours open</label>
+                                    <input type="text" placeholder="Mon–Sat: 9:00 AM – 5:00 PM" x-model="newProfessional.operating_hours">
+                                </div>
+                                <div class="form-group full-width">
+                                    @include('partials.clinic_map_picker', [
+                                        'mapId' => 'admin-add-clinic-map',
+                                        'latInputId' => 'admin-add-latitude',
+                                        'lngInputId' => 'admin-add-longitude',
+                                        'addressInputId' => 'admin-add-clinic-address',
+                                        'prefix' => 'admin-add-clinic',
+                                        'omitName' => true,
+                                        'latModel' => 'newProfessional.latitude',
+                                        'lngModel' => 'newProfessional.longitude',
+                                        'hideNativeInputs' => true,
+                                    ])
+                                </div>
+                                <div class="form-group full-width form-check-row">
+                                    <input type="checkbox" id="admin-add-directory-visible" x-model="newProfessional.is_partnered_directory_visible">
+                                    <label for="admin-add-directory-visible">Show this clinic in the family clinic list</label>
                                 </div>
                             </div>
                         </div>
@@ -1117,55 +1195,85 @@
 
                 <!-- Edit Modal -->
                 <div class="modal-overlay" :class="{ active: editingProfessional !== null }">
-                    <div class="modal" x-show="editingProfessional !== null">
+                    <div class="modal modal--wide" x-show="editingProfessional !== null">
                         <div class="modal-header">
                             <h3>Edit Professional</h3>
-                            <p>Update account details and status.</p>
+                            <p>Update their profile, clinic details, and listing on the map.</p>
                         </div>
-                        <div class="modal-body" x-show="editingProfessional !== null">
-                            <div class="form-grid edit">
-                                <div class="form-group">
-                                    <label>First Name</label>
-                                    <input type="text" x-model="editingProfessional.first_name">
+                        <div class="modal-body">
+                            <template x-if="editingProfessional">
+                                <div class="form-grid edit">
+                                    <p class="form-section-title">Account</p>
+                                    <div class="form-group">
+                                        <label>First name</label>
+                                        <input type="text" x-model="editingProfessional.first_name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Last name</label>
+                                        <input type="text" x-model="editingProfessional.last_name">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label>Email</label>
+                                        <input type="email" x-model="editingProfessional.email">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Account status</label>
+                                        <select x-model="editingProfessional.status">
+                                            <option value="active">Active</option>
+                                            <option value="inactive">Inactive</option>
+                                            <option value="suspended">Suspended</option>
+                                            <option value="pending">Pending</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Phone</label>
+                                        <input type="text" x-model="editingProfessional.phone">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Clinic name</label>
+                                        <input type="text" x-model="editingProfessional.clinic">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>City / area</label>
+                                        <input type="text" x-model="editingProfessional.location">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Specialty</label>
+                                        <input type="text" x-model="editingProfessional.specialty">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label>License number</label>
+                                        <input type="text" x-model="editingProfessional.license_number">
+                                    </div>
+
+                                    <p class="form-section-title">Clinic listing</p>
+                                    <div class="form-group full-width">
+                                        <label>Clinic address</label>
+                                        <input type="text" id="admin-edit-clinic-address" x-model="editingProfessional.clinic_address" placeholder="Street, barangay, city">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label>Hours open</label>
+                                        <input type="text" x-model="editingProfessional.operating_hours" placeholder="Mon–Sat: 9:00 AM – 5:00 PM">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        @include('partials.clinic_map_picker', [
+                                            'mapId' => 'admin-edit-clinic-map',
+                                            'latInputId' => 'admin-edit-latitude',
+                                            'lngInputId' => 'admin-edit-longitude',
+                                            'addressInputId' => 'admin-edit-clinic-address',
+                                            'prefix' => 'admin-edit-clinic',
+                                            'omitName' => true,
+                                            'latModel' => 'editingProfessional.latitude',
+                                            'lngModel' => 'editingProfessional.longitude',
+                                            'hideNativeInputs' => true,
+                                        ])
+                                    </div>
+                                    <div class="form-group full-width form-check-row">
+                                        <input type="checkbox" id="admin-edit-directory-visible" x-model="editingProfessional.is_partnered_directory_visible">
+                                        <label for="admin-edit-directory-visible">Show this clinic in the family clinic list</label>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label>Last Name</label>
-                                    <input type="text" x-model="editingProfessional.last_name">
-                                </div>
-                                <div class="form-group full-width">
-                                    <label>Email</label>
-                                    <input type="email" x-model="editingProfessional.email">
-                                </div>
-                                <div class="form-group">
-                                    <label>Status</label>
-                                    <select x-model="editingProfessional.status">
-                                        <option value="active">Active</option>
-                                        <option value="inactive">Inactive</option>
-                                        <option value="suspended">Suspended</option>
-                                        <option value="pending">Pending</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Phone</label>
-                                    <input type="text" x-model="editingProfessional.phone">
-                                </div>
-                                <div class="form-group">
-                                    <label>Clinic</label>
-                                    <input type="text" x-model="editingProfessional.clinic">
-                                </div>
-                                <div class="form-group">
-                                    <label>Location</label>
-                                    <input type="text" x-model="editingProfessional.location">
-                                </div>
-                                <div class="form-group">
-                                    <label>Specialty</label>
-                                    <input type="text" x-model="editingProfessional.specialty">
-                                </div>
-                                <div class="form-group full-width">
-                                    <label>License Number</label>
-                                    <input type="text" x-model="editingProfessional.license_number">
-                                </div>
-                            </div>
+                            </template>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn-secondary" @click="editingProfessional = null" :disabled="isSubmittingProfessional">Cancel</button>
@@ -1380,13 +1488,18 @@
                             </div>
                             <div class="form-group">
                                 <label>New Password</label>
-                                <input type="password" name="new_password" placeholder="Enter new password">
+                                <input type="password" id="new_password" name="new_password" placeholder="Enter new password">
                             </div>
                             <div class="form-group">
                                 <label>Confirm Password</label>
-                                <input type="password" name="new_password_confirmation" placeholder="Confirm password">
+                                <input type="password" id="new_password_confirmation" name="new_password_confirmation" placeholder="Confirm password">
                             </div>
                         </div>
+                        @include('components.password-strength', [
+                            'passwordId' => 'new_password',
+                            'confirmId' => 'new_password_confirmation',
+                            'optional' => true,
+                        ])
                     </div>
                 </div>
 
@@ -1456,6 +1569,8 @@
             </div>
         </div>
 
+<script>window.LUMI_LEAFLET_BASE = @json(asset('vendor/leaflet'));</script>
+<script src="{{ asset('assets/js/clinic-map-picker.js') }}?v=20261018f"></script>
 <script>
         document.addEventListener('alpine:init', () => {
             document.querySelectorAll('.server-row').forEach((row) => {
@@ -1524,10 +1639,89 @@
                     clinic: '',
                     license_number: '',
                     location: '',
+                    clinic_address: '',
+                    operating_hours: '',
+                    latitude: '',
+                    longitude: '',
+                    is_partnered_directory_visible: true,
                     password: '',
                     password_confirmation: ''
                 },
                 toasts: [],
+
+                toCoord(value) {
+                    if (value === null || value === undefined || value === '') return null;
+                    const n = Number(value);
+                    return Number.isFinite(n) ? n : null;
+                },
+
+                mountAddClinicMap() {
+                    if (!window.LumiClinicMapPicker) return;
+                    window.LumiClinicMapPicker.mount({
+                        mapId: 'admin-add-clinic-map',
+                        latInputId: 'admin-add-latitude',
+                        lngInputId: 'admin-add-longitude',
+                        addressInputId: 'admin-add-clinic-address',
+                        searchInputId: 'admin-add-clinic-search',
+                        searchBtnId: 'admin-add-clinic-search-btn',
+                        clearBtnId: 'admin-add-clinic-clear-btn',
+                        statusId: 'admin-add-clinic-status',
+                        initialLat: this.toCoord(this.newProfessional.latitude),
+                        initialLng: this.toCoord(this.newProfessional.longitude),
+                    }).then(() => window.LumiClinicMapPicker.invalidate('admin-add-clinic-map'));
+                },
+
+                destroyAddClinicMap() {
+                    if (window.LumiClinicMapPicker) {
+                        window.LumiClinicMapPicker.destroy('admin-add-clinic-map');
+                    }
+                },
+
+                mountEditClinicMap() {
+                    if (!window.LumiClinicMapPicker || !this.editingProfessional) return;
+                    const pro = this.editingProfessional;
+                    window.LumiClinicMapPicker.mount({
+                        mapId: 'admin-edit-clinic-map',
+                        latInputId: 'admin-edit-latitude',
+                        lngInputId: 'admin-edit-longitude',
+                        addressInputId: 'admin-edit-clinic-address',
+                        searchInputId: 'admin-edit-clinic-search',
+                        searchBtnId: 'admin-edit-clinic-search-btn',
+                        clearBtnId: 'admin-edit-clinic-clear-btn',
+                        statusId: 'admin-edit-clinic-status',
+                        initialLat: this.toCoord(pro.latitude),
+                        initialLng: this.toCoord(pro.longitude),
+                        initialAddress: this.cleanText(pro.clinic_address) || this.cleanText(pro.location) || '',
+                    }).then(() => window.LumiClinicMapPicker.invalidate('admin-edit-clinic-map'));
+                },
+
+                cleanText(value) {
+                    const text = (value ?? '').toString().trim();
+                    if (!text || text.toUpperCase() === 'N/A') return '';
+                    return text;
+                },
+
+                buildEditingProfessional(pro) {
+                    const parsed = this.splitName(pro.name || '');
+                    const address = this.cleanText(pro.clinic_address) || this.cleanText(pro.location) || '';
+                    return {
+                        ...pro,
+                        first_name: pro.first_name || parsed.first_name,
+                        last_name: pro.last_name || parsed.last_name,
+                        status: this.normalizeStatus(pro.status),
+                        clinic_address: address,
+                        operating_hours: this.cleanText(pro.operating_hours) || '',
+                        latitude: this.toCoord(pro.latitude) ?? '',
+                        longitude: this.toCoord(pro.longitude) ?? '',
+                        is_partnered_directory_visible: pro.is_partnered_directory_visible !== false,
+                    };
+                },
+
+                destroyEditClinicMap() {
+                    if (window.LumiClinicMapPicker) {
+                        window.LumiClinicMapPicker.destroy('admin-edit-clinic-map');
+                    }
+                },
 
                 notify(type, message) {
                     const id = Date.now() + Math.random();
@@ -1656,7 +1850,12 @@
                         specialty: this.newProfessional.specialty,
                         clinic: this.newProfessional.clinic,
                         license_number: this.newProfessional.license_number,
-                        location: this.newProfessional.location
+                        location: this.newProfessional.location,
+                        clinic_address: this.newProfessional.clinic_address || this.newProfessional.location,
+                        operating_hours: this.newProfessional.operating_hours || null,
+                        latitude: this.toCoord(this.newProfessional.latitude),
+                        longitude: this.toCoord(this.newProfessional.longitude),
+                        is_partnered_directory_visible: !!this.newProfessional.is_partnered_directory_visible,
                     };
 
                     this.isSubmittingProfessional = true;
@@ -1707,18 +1906,27 @@
                     this.newProfessional = { 
                         first_name: '', last_name: '', email: '', phone: '', specialty: '', 
                         clinic: '', license_number: '', location: '',
+                        clinic_address: '', operating_hours: '', latitude: '', longitude: '',
+                        is_partnered_directory_visible: true,
                         password: '', password_confirmation: ''
                     };
                 },
 
-                editProfessional(pro) {
-                    const parsed = this.splitName(pro.name || '');
-                    this.editingProfessional = {
-                        ...pro,
-                        first_name: pro.first_name || parsed.first_name,
-                        last_name: pro.last_name || parsed.last_name,
-                        status: this.normalizeStatus(pro.status)
-                    };
+                async editProfessional(pro) {
+                    // Open immediately with list data, then refresh from server so
+                    // saved address + map pin are up to date.
+                    this.editingProfessional = this.buildEditingProfessional(pro);
+                    try {
+                        const response = await fetch(`/admin/professionals/${pro.id}`, {
+                            headers: { 'Accept': 'application/json' },
+                        });
+                        const data = await response.json();
+                        if (response.ok && data.success && data.professional) {
+                            this.editingProfessional = this.buildEditingProfessional(data.professional);
+                        }
+                    } catch (error) {
+                        console.warn('Could not refresh professional details', error);
+                    }
                 },
 
                 async saveEdit() {
@@ -1734,6 +1942,11 @@
                             specialty: this.editingProfessional.specialty,
                             license_number: this.editingProfessional.license_number,
                             location: this.editingProfessional.location,
+                            clinic_address: this.editingProfessional.clinic_address || this.editingProfessional.location,
+                            operating_hours: this.editingProfessional.operating_hours || null,
+                            latitude: this.toCoord(this.editingProfessional.latitude),
+                            longitude: this.toCoord(this.editingProfessional.longitude),
+                            is_partnered_directory_visible: !!this.editingProfessional.is_partnered_directory_visible,
                             status: this.normalizeStatus(this.editingProfessional.status)
                         };
 
@@ -1877,6 +2090,27 @@
                             this.loadProfessionals(this.pagination.current_page || 1);
                         }
                     }, 30000);
+
+                    this.$watch('showAddModal', (open) => {
+                        if (open) {
+                            this.$nextTick(() => {
+                                setTimeout(() => this.mountAddClinicMap(), 80);
+                            });
+                        } else {
+                            this.destroyAddClinicMap();
+                        }
+                    });
+
+                    this.$watch('editingProfessional', (pro) => {
+                        if (pro) {
+                            this.destroyEditClinicMap();
+                            this.$nextTick(() => {
+                                setTimeout(() => this.mountEditClinicMap(), 160);
+                            });
+                        } else {
+                            this.destroyEditClinicMap();
+                        }
+                    });
                 },
 
                 async pingPresence() {

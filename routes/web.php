@@ -58,6 +58,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/presence', [PresenceController::class, 'ping'])->name('admin.presence');
 
     Route::get('/professionals', [AdminController::class, 'getProfessionals']);
+    Route::get('/professionals/{id}', [AdminController::class, 'getProfessional']);
     Route::post('/professionals', [AdminController::class, 'addProfessional']);
     Route::put('/professionals/{id}', [AdminController::class, 'editProfessional']);
     Route::delete('/professionals/{id}', [AdminController::class, 'deleteProfessional']);
@@ -69,6 +70,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 });
 
 Route::prefix('guardian')->middleware(['auth', 'role:guardian'])->group(function () {
-    Route::get('/dashboard', [GuardianController::class, 'useMobile'])->name('guardian.dashboard');
-    Route::get('/children', [GuardianController::class, 'useMobile'])->name('guardian.children');
+    Route::get('/dashboard', [GuardianController::class, 'dashboard'])->name('guardian.dashboard');
+    Route::get('/children', [GuardianController::class, 'children'])->name('guardian.children');
+    Route::get('/poll', [GuardianController::class, 'poll'])->name('guardian.poll');
 });

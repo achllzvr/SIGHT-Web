@@ -25,7 +25,37 @@ class ChildProfile extends Model
         'last_sync' => 'datetime',
         'updated_at' => 'datetime',
         'calibration_baseline' => 'json',
+        'birthdate' => 'date',
     ];
+
+    /** Chronological age in whole years from birthdate. */
+    public function chronologicalAgeYears(): ?int
+    {
+        if (empty($this->birthdate)) {
+            return null;
+        }
+
+        return $this->birthdate instanceof \Carbon\CarbonInterface
+            ? $this->birthdate->age
+            : \Carbon\Carbon::parse((string) $this->birthdate)->age;
+    }
+
+    /** Age-based max daily Watch Area minutes: 3–5→60, 6–8→90, 9–12+→120. */
+    public function ageMaxDailyMinutes(): int
+    {
+        $age = $this->chronologicalAgeYears();
+        if ($age === null) {
+            return 120;
+        }
+        if ($age <= 5) {
+            return 60;
+        }
+        if ($age <= 8) {
+            return 90;
+        }
+
+        return 120;
+    }
 
     public function user()
     {

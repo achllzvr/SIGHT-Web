@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Rules\StrongPassword;
 use App\Services\EmailVerificationOtpService;
 use App\Services\GuardianChildAccess;
 use App\Services\LegalDocumentService;
@@ -31,7 +32,7 @@ class GuardianApiController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:user,email',
-            'password' => 'required|string|min:6',
+            'password' => ['required', 'string', new StrongPassword()],
             'document_ids' => 'nullable|array',
             'document_ids.*' => 'integer',
         ]);
@@ -136,7 +137,7 @@ class GuardianApiController extends Controller
         $request->validate([
             'email' => 'required|email|exists:user,email',
             'current_password' => 'required|string',
-            'new_password' => 'required|string|min:6',
+            'new_password' => ['required', 'string', new StrongPassword()],
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -205,6 +206,44 @@ class GuardianApiController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Child password updated successfully.',
+        ], 200);
+    }
+
+    /**
+     * PUT /api/mobile/child/{child_id}/birthdate
+     */
+    public function updateChildBirthdateMobile(Request $request, $child_id)
+    {
+        $validated = $request->validate([
+            'birthdate' => 'required|date|before:today',
+        ]);
+
+        $guardianUserId = (int) Auth::id();
+        $child = \App\Models\ChildProfile::find($child_id);
+        if (!$child) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Child not found.',
+            ], 404);
+        }
+
+        if (!$this->guardianChildAccess->ownsChild($guardianUserId, (int) $child_id)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $child->birthdate = $validated['birthdate'];
+        $child->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Birthdate updated successfully.',
+            'data' => [
+                'child_id' => (int) $child->child_id,
+                'birthdate' => $child->birthdate,
+            ],
         ], 200);
     }
 

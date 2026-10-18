@@ -98,9 +98,10 @@ class RuleEngineService
                 'child_id' => $child->child_id,
             ]);
 
+            $ageMax = $child->ageMaxDailyMinutes();
             SessionLimits::create([
                 'child_id' => $child->child_id,
-                'daily_limit_minutes' => 120,
+                'daily_limit_minutes' => $ageMax,
                 'mode' => 'Relaxed',
                 'is_active' => true,
                 'harmful_distance_threshold' => 30,
@@ -157,8 +158,13 @@ class RuleEngineService
             return $this->response('error', 'Session limits not found', null, ['session_limits' => ['Session limits not found']], 404);
         }
 
+        $child = ChildProfile::find($childId);
+        $ageMax = $child?->ageMaxDailyMinutes() ?? 120;
+        $requested = (int) ($payload['daily_limit_minutes'] ?? $limits->daily_limit_minutes);
+        $clamped = max(15, min($requested, $ageMax));
+
         $limits->update([
-            'daily_limit_minutes' => $payload['daily_limit_minutes'] ?? $limits->daily_limit_minutes,
+            'daily_limit_minutes' => $clamped,
             'mode' => $payload['mode'] ?? $limits->mode,
             'harmful_distance_threshold' => $payload['harmful_distance_threshold'] ?? $limits->harmful_distance_threshold,
             'critical_distance_threshold' => $payload['critical_distance_threshold'] ?? $limits->critical_distance_threshold,
@@ -168,6 +174,8 @@ class RuleEngineService
 
         return $this->response('success', 'Limits updated successfully', [
             'updated_at' => optional($limits->updated_at)->toIso8601String(),
+            'daily_limit_minutes' => $limits->daily_limit_minutes,
+            'age_max_minutes' => $ageMax,
         ]);
     }
 

@@ -70,7 +70,13 @@
             <label for="password_confirmation">Confirm New Password</label>
             <input id="password_confirmation" name="password_confirmation" type="password" required>
 
-            <button type="submit">Reset Password</button>
+            @include('components.password-strength', [
+                'passwordId' => 'password',
+                'confirmId' => 'password_confirmation',
+                'submitSelector' => 'button[type="submit"]',
+            ])
+
+            <button type="submit" disabled>Reset Password</button>
         </form>
         @else
         <p>Your password was updated successfully.</p>

@@ -510,11 +510,32 @@
                 </div>
             </div>
 
+            <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                <label class="mb-0 fw-semibold" for="telemetryRange">Historical range</label>
+                <select id="telemetryRange" class="form-select form-select-sm" style="max-width: 220px;">
+                    <option value="7d" selected>Last 7 Days</option>
+                    <option value="30d">Last Month</option>
+                    <option value="90d">Last 3 Months</option>
+                    <option value="180d">Last 6 Months</option>
+                    <option value="365d">Last Year</option>
+                    <option value="lifetime">Lifetime</option>
+                </select>
+                <span id="childPresenceBadge" class="badge rounded-pill text-bg-secondary">
+                    Device: {{ $dashboardData['presence']['presence_label'] ?? 'Unknown' }}
+                </span>
+                @if(!empty($dashboardData['clinical_trend_alert']['overall_condition']))
+                <span class="badge rounded-pill text-bg-warning">Trend: {{ $dashboardData['clinical_trend_alert']['overall_condition'] }}</span>
+                @endif
+                @if(!empty($dashboardData['usage_threshold']['badge']))
+                <span class="badge rounded-pill text-bg-info">Usage: {{ $dashboardData['usage_threshold']['badge'] }}</span>
+                @endif
+            </div>
+
             <div class="guide-callout">
                 <h3 class="d-flex align-items-center gap-2"><i class="bi bi-info-circle"></i> How to read this visit snapshot</h3>
                 <p>
                     These figures come from the child’s <strong>LUMI mobile app</strong>. During Watch sessions, on-device face tracking records blink rate and viewing distance; the app curates those samples into short metric windows and the parent syncs them to LUMI.
-                    Charts below cover the <strong>last 7 days</strong> (daily aggregates). Summary cards use that same window.
+                    Charts below cover the <strong>selected historical range</strong> (default last 7 days). Summary cards use that same window. Live device status refreshes about every 15 seconds while this page is open.
                     @if(!empty($lastSync))
                         Last parent sync: <strong>{{ \Carbon\Carbon::parse($lastSync)->format('M d, Y g:i A') }}</strong>.
                     @else
@@ -768,6 +789,41 @@
                     </div>
                 </div>
 
+                <div class="panel p-4 p-md-5 mb-4" id="clinicMapPanel">
+                    <h2 class="h5 brand mb-2">Clinic map</h2>
+                    <p class="text-muted small mb-4">Set where your clinic appears for families browsing partnered professionals.</p>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" for="clinic_address">Clinic address</label>
+                            <input id="clinic_address" type="text" name="clinic_address" class="form-control" value="{{ old('clinic_address', $doctorProfile?->clinic_address ?? $profileLocation) }}" placeholder="Street, barangay, city">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" for="operating_hours">Hours open</label>
+                            <input id="operating_hours" type="text" name="operating_hours" class="form-control" value="{{ old('operating_hours', $doctorProfile?->operating_hours ?? '') }}" placeholder="Mon–Sat: 9:00 AM – 5:00 PM">
+                        </div>
+                        <div class="col-12">
+                            @include('partials.clinic_map_picker', [
+                                'mapId' => 'doctor-clinic-map',
+                                'latInputId' => 'latitude',
+                                'lngInputId' => 'longitude',
+                                'addressInputId' => 'clinic_address',
+                                'prefix' => 'doctor-clinic',
+                                'initialLat' => old('latitude', $doctorProfile?->latitude),
+                                'initialLng' => old('longitude', $doctorProfile?->longitude),
+                                'hideNativeInputs' => true,
+                                'omitName' => false,
+                            ])
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="is_partnered_directory_visible" name="is_partnered_directory_visible" {{ old('is_partnered_directory_visible', $doctorProfile?->is_partnered_directory_visible ?? true) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_partnered_directory_visible">Show my clinic in the partnered professionals list for families</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="panel p-4 p-md-5 mb-4">
                     <h2 class="h5 brand mb-2">Reset Password</h2>
                     <p class="text-muted small mb-4">Leave blank to keep your current password. Requires your current password to confirm a change.</p>
@@ -786,6 +842,11 @@
                             <input id="new_password_confirmation" type="password" name="new_password_confirmation" class="form-control" autocomplete="new-password" minlength="8">
                         </div>
                     </div>
+                    @include('components.password-strength', [
+                        'passwordId' => 'new_password',
+                        'confirmId' => 'new_password_confirmation',
+                        'optional' => true,
+                    ])
                 </div>
 
                 <button type="submit" class="btn btn-success ds-btn-primary px-4">Save Account Settings</button>
@@ -795,6 +856,95 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>window.LUMI_LEAFLET_BASE = @json(asset('vendor/leaflet'));</script>
+<script src="{{ asset('assets/js/clinic-map-picker.js') }}?v=20261018f"></script>
+<script>
+(function initDoctorClinicMap() {
+    @php
+        $doctorMapLat = old('latitude', $doctorProfile?->latitude);
+        $doctorMapLng = old('longitude', $doctorProfile?->longitude);
+        $doctorMapLat = ($doctorMapLat === null || $doctorMapLat === '') ? null : (float) $doctorMapLat;
+        $doctorMapLng = ($doctorMapLng === null || $doctorMapLng === '') ? null : (float) $doctorMapLng;
+        $doctorMapAddress = old('clinic_address', $doctorProfile?->clinic_address ?? $profileLocation ?? '');
+        $doctorMapAddress = is_string($doctorMapAddress) ? trim($doctorMapAddress) : '';
+        if (strcasecmp($doctorMapAddress, 'N/A') === 0) {
+            $doctorMapAddress = '';
+        }
+    @endphp
+    const mountOpts = {
+        mapId: 'doctor-clinic-map',
+        latInputId: 'latitude',
+        lngInputId: 'longitude',
+        addressInputId: 'clinic_address',
+        searchInputId: 'doctor-clinic-search',
+        searchBtnId: 'doctor-clinic-search-btn',
+        clearBtnId: 'doctor-clinic-clear-btn',
+        statusId: 'doctor-clinic-status',
+        initialLat: @json($doctorMapLat),
+        initialLng: @json($doctorMapLng),
+        initialAddress: @json($doctorMapAddress),
+    };
+    let mounted = false;
+    let mounting = false;
+
+    const mountWhenVisible = () => {
+        if (!window.LumiClinicMapPicker || !document.getElementById('doctor-clinic-map')) return;
+        if (mounted) {
+            window.LumiClinicMapPicker.invalidate('doctor-clinic-map');
+            return;
+        }
+        if (mounting) return;
+        mounting = true;
+        // Prefer live form values (saved after last load / failed validation).
+        const latEl = document.getElementById('latitude');
+        const lngEl = document.getElementById('longitude');
+        const addressEl = document.getElementById('clinic_address');
+        const liveOpts = {
+            ...mountOpts,
+            initialLat: (latEl && latEl.value !== '') ? latEl.value : mountOpts.initialLat,
+            initialLng: (lngEl && lngEl.value !== '') ? lngEl.value : mountOpts.initialLng,
+            initialAddress: (addressEl && addressEl.value.trim() !== '')
+                ? addressEl.value.trim()
+                : mountOpts.initialAddress,
+        };
+        window.LumiClinicMapPicker.mount(liveOpts).then(() => {
+            mounted = true;
+            mounting = false;
+            setTimeout(() => window.LumiClinicMapPicker.invalidate('doctor-clinic-map'), 50);
+            setTimeout(() => window.LumiClinicMapPicker.invalidate('doctor-clinic-map'), 250);
+        }).catch(() => {
+            mounting = false;
+        });
+    };
+
+    const tryMount = () => {
+        const settingsPane = document.getElementById('settingsPane');
+        if (!settingsPane) return;
+        if (settingsPane.classList.contains('active') || settingsPane.classList.contains('show')) {
+            mountWhenVisible();
+        }
+    };
+
+    const boot = () => {
+        tryMount();
+        const settingsTab = document.getElementById('settings-tab');
+        if (settingsTab) {
+            settingsTab.addEventListener('shown.bs.tab', () => mountWhenVisible());
+            settingsTab.addEventListener('click', () => setTimeout(mountWhenVisible, 150));
+        }
+        const settingsPane = document.getElementById('settingsPane');
+        if (settingsPane) {
+            settingsPane.addEventListener('shown.bs.tab', () => mountWhenVisible());
+        }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot);
+    } else {
+        boot();
+    }
+})();
+</script>
 <script>
 const csrf = document.querySelector('meta[name="csrf-token"]').content;
 const hasSession = @json($hasSession);
@@ -1057,6 +1207,35 @@ if (hasSession && hasTelemetry && dash?.has_data) {
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') ping();
     });
+})();
+
+(function liveTelemetryPoll() {
+    const sessionId = @json($sessionId);
+    if (!sessionId) return;
+    const rangeEl = document.getElementById('telemetryRange');
+    const badge = document.getElementById('childPresenceBadge');
+    const poll = () => {
+        if (document.visibilityState !== 'visible') return;
+        const range = rangeEl ? rangeEl.value : '7d';
+        fetch(@json(url('/doctor/access-sessions')) + '/' + sessionId + '/telemetry?range=' + encodeURIComponent(range), {
+            headers: { 'Accept': 'application/json' },
+            credentials: 'same-origin',
+        }).then(r => r.json()).then(body => {
+            const presence = body?.data?.telemetry?.presence;
+            if (badge && presence?.presence_label) {
+                badge.textContent = 'Device: ' + presence.presence_label;
+                badge.className = 'badge rounded-pill ' + (presence.presence_status === 'online' ? 'text-bg-success' : 'text-bg-secondary');
+            }
+        }).catch(() => {});
+    };
+    poll();
+    setInterval(poll, 15000);
+    if (rangeEl) {
+        rangeEl.addEventListener('change', () => {
+            const range = rangeEl.value;
+            window.location.search = new URLSearchParams({ range }).toString();
+        });
+    }
 })();
 </script>
 </body>

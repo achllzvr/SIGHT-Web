@@ -13,17 +13,18 @@ class ClinicianTelemetryReportService
     ) {
     }
 
-    public function downloadPdf(int $clinicianUserId, int $sessionId): Response
+    public function downloadPdf(int $clinicianUserId, int $sessionId, string $range = '7d'): Response
     {
         $session = $this->sessionService->assertActive($sessionId, $clinicianUserId);
         $session->loadMissing(['child.user', 'clinician']);
-        $telemetry = $this->sessionService->buildTelemetry($session->child);
+        $telemetry = $this->sessionService->buildTelemetry($session->child, $range);
 
         $pdf = Pdf::loadView('reports.patient-telemetry', [
             'session' => $session,
             'child' => $session->child,
             'clinician' => $session->clinician,
             'telemetry' => $telemetry,
+            'range_label' => $telemetry['range_label'] ?? 'Last 7 Days',
             'generatedAt' => now(),
         ]);
 

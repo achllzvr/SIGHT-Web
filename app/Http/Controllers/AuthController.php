@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\DoctorProfile;
+use App\Rules\StrongPassword;
 use App\Services\UserPresenceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -66,6 +67,8 @@ class AuthController extends Controller
                 return redirect()->route('admin.dashboard');
             } elseif ($role === 'doctor') {
                 return redirect()->route('doctor.dashboard');
+            } elseif ($role === 'guardian') {
+                return redirect()->route('guardian.dashboard');
             }
             
             // Fallback if role is not recognized
@@ -268,7 +271,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'token' => 'required|string',
             'email' => 'required|email',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', 'string', 'confirmed', new StrongPassword()],
         ]);
 
         $this->ensurePasswordResetTableExists();
@@ -417,7 +420,7 @@ class AuthController extends Controller
     public function updateFirstLoginPassword(Request $request)
     {
         $validated = $request->validate([
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', 'string', 'confirmed', new StrongPassword()],
         ]);
 
         $user = Auth::user();
@@ -454,6 +457,9 @@ class AuthController extends Controller
         if ($role === 'doctor') {
             return redirect()->route('doctor.dashboard');
         }
+        if ($role === 'guardian') {
+            return redirect()->route('guardian.dashboard');
+        }
 
         return redirect()->route('login');
     }
@@ -467,7 +473,7 @@ class AuthController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:user,email',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', 'string', 'confirmed', new StrongPassword()],
             'phone' => 'required|string|max:20',
             'clinic' => 'required|string|max:255',
             'specialty' => 'required|string|max:255',

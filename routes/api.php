@@ -15,6 +15,9 @@ Route::prefix('shared')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/child/{child_id}/limits', [SharedApiController::class, 'getChildLimits']);
         Route::get('/child/{child_id}/metrics', [SharedApiController::class, 'getChildMetrics']);
+        Route::get('/child/{child_id}/dashboard', [SharedApiController::class, 'getChildDashboard']);
+        Route::get('/child/{child_id}/presence', [SharedApiController::class, 'getChildPresence']);
+        Route::get('/partnered-professionals', [SharedApiController::class, 'listPartneredProfessionals']);
     });
 });
 
@@ -54,6 +57,9 @@ Route::prefix('mobile')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/guardian/children', [GuardianApiController::class, 'getChildrenMobile']);
         Route::post('/child/register', [GuardianApiController::class, 'addChildMobile']);
+        Route::put('/child/{child_id}/birthdate', [GuardianApiController::class, 'updateChildBirthdateMobile']);
+        Route::get('/partnered-professionals', [SharedApiController::class, 'listPartneredProfessionals']);
+        Route::get('/child/{child_id}/dashboard', [SharedApiController::class, 'getChildDashboard']);
 
         Route::post('/children/{child_id}/access-tokens', [AccessApiController::class, 'generateToken']);
         Route::get('/children/{child_id}/access-session', [AccessApiController::class, 'childActiveSession']);

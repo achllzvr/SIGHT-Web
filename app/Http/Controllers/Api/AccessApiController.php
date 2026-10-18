@@ -166,15 +166,27 @@ class AccessApiController extends Controller
         return response()->json($result['body'], $result['http_code']);
     }
 
-    public function sessionTelemetry(int $id)
+    public function sessionTelemetry(\Illuminate\Http\Request $request, int $id)
     {
-        $result = $this->sessionService->telemetryForSession((int) Auth::id(), $id);
+        $request->validate([
+            'range' => 'nullable|string|in:7d,30d,90d,180d,365d,lifetime',
+        ]);
+        $result = $this->sessionService->telemetryForSession(
+            (int) Auth::id(),
+            $id,
+            $request->input('range', '7d')
+        );
 
         return response()->json($result['body'], $result['http_code']);
     }
 
-    public function sessionReportPdf(int $id)
+    public function sessionReportPdf(\Illuminate\Http\Request $request, int $id)
     {
-        return $this->reportService->downloadPdf((int) Auth::id(), $id);
+        $range = $request->input('range', '7d');
+        if (!in_array($range, ['7d', '30d', '90d', '180d', '365d', 'lifetime'], true)) {
+            $range = '7d';
+        }
+
+        return $this->reportService->downloadPdf((int) Auth::id(), $id, $range);
     }
 }

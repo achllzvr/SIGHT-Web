@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DoctorProfile;
+use App\Rules\StrongPassword;
 use App\Services\ClinicianTelemetryReportService;
 use App\Services\PatientAccessSessionService;
 use Illuminate\Http\Request;
@@ -61,7 +62,21 @@ class DoctorController extends Controller
                 'patient_code' => $active['child']['patient_code'] ?? null,
                 'last_sync' => $active['child']['last_sync'] ?? null,
             ];
-            $dashboardData = $this->formatDashboardFromTelemetry($active['telemetry'] ?? null);
+            $range = $request->input('range', '7d');
+            if (!in_array($range, ['7d', '30d', '90d', '180d', '365d', 'lifetime'], true)) {
+                $range = '7d';
+            }
+            // Rebuild telemetry for selected multi-horizon range when child is available.
+            $childId = $selectedPatient['id'] ?? null;
+            if ($childId) {
+                $child = \App\Models\ChildProfile::find($childId);
+                $telemetry = $child
+                    ? $this->sessionService->buildTelemetry($child, $range)
+                    : ($active['telemetry'] ?? null);
+                $dashboardData = $this->formatDashboardFromTelemetry($telemetry);
+            } else {
+                $dashboardData = $this->formatDashboardFromTelemetry($active['telemetry'] ?? null);
+            }
         }
 
         return view('doctor.dashboard', compact(
@@ -92,8 +107,13 @@ class DoctorController extends Controller
             'specialty' => 'required|string|max:255',
             'license_number' => 'required|string|max:255',
             'location' => 'nullable|string|max:255',
+            'clinic_address' => 'nullable|string|max:500',
+            'operating_hours' => 'nullable|string|max:255',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'is_partnered_directory_visible' => 'nullable|boolean',
             'current_password' => 'required_with:new_password|nullable|string',
-            'new_password' => 'nullable|string|min:8|confirmed',
+            'new_password' => ['nullable', 'string', 'confirmed', new StrongPassword()],
         ]);
 
         if ($request->filled('new_password')) {
@@ -122,24 +142,34 @@ class DoctorController extends Controller
 
         if (Schema::hasTable('doctor_profile')) {
             $profile = DoctorProfile::where('user_id', $doctor->user_id)->first();
-            $profilePayload = [
+            $profilePayload = $this->doctorProfilePayload([
                 'phone' => $validated['phone'],
                 'clinic' => $validated['clinic'],
                 'specialty' => $validated['specialty'],
                 'license_number' => $validated['license_number'],
                 'location' => $validated['location'] ?? '',
-            ];
+                'clinic_address' => $validated['clinic_address'] ?? ($validated['location'] ?? ''),
+                'operating_hours' => $validated['operating_hours'] ?? null,
+                'latitude' => $validated['latitude'] ?? null,
+                'longitude' => $validated['longitude'] ?? null,
+                'is_partnered_directory_visible' => $request->boolean('is_partnered_directory_visible', true),
+            ]);
 
             if ($profile) {
                 $profile->fill($profilePayload);
                 $profile->save();
             } else {
                 $nextId = ((int) DB::table('doctor_profile')->max('doctor_id')) + 1;
-                DoctorProfile::create(array_merge($profilePayload, [
-                    'doctor_id' => $nextId,
+                $createPayload = array_merge($profilePayload, [
                     'user_id' => $doctor->user_id,
-                    'is_validated' => 0,
-                ]));
+                ]);
+                if (Schema::hasColumn('doctor_profile', 'doctor_id')) {
+                    $createPayload['doctor_id'] = $nextId;
+                }
+                if (Schema::hasColumn('doctor_profile', 'is_validated')) {
+                    $createPayload['is_validated'] = 0;
+                }
+                DoctorProfile::create($createPayload);
             }
         }
 
@@ -186,16 +216,25 @@ class DoctorController extends Controller
         return response()->json($result['body'], $result['http_code']);
     }
 
-    public function sessionTelemetry(int $id)
+    public function sessionTelemetry(Request $request, int $id)
     {
-        $result = $this->sessionService->telemetryForSession((int) Auth::id(), $id);
+        $request->validate([
+            'range' => 'nullable|string|in:7d,30d,90d,180d,365d,lifetime',
+        ]);
+        $range = $request->input('range', '7d');
+        $result = $this->sessionService->telemetryForSession((int) Auth::id(), $id, $range);
 
         return response()->json($result['body'], $result['http_code']);
     }
 
-    public function sessionReportPdf(int $id)
+    public function sessionReportPdf(Request $request, int $id)
     {
-        return $this->reportService->downloadPdf((int) Auth::id(), $id);
+        $range = $request->input('range', '7d');
+        if (!in_array($range, ['7d', '30d', '90d', '180d', '365d', 'lifetime'], true)) {
+            $range = '7d';
+        }
+
+        return $this->reportService->downloadPdf((int) Auth::id(), $id, $range);
     }
 
     private function formatDashboardFromTelemetry(?array $telemetry): array
@@ -226,6 +265,11 @@ class DoctorController extends Controller
                 'activity_total_items' => 0,
                 'has_data' => false,
                 'harmful_distance_cm' => 30,
+                'clinical_trend_alert' => null,
+                'usage_threshold' => null,
+                'ocular_protection_index' => null,
+                'presence' => null,
+                'range_label' => 'Last 7 Days',
             ];
         }
 
@@ -242,6 +286,11 @@ class DoctorController extends Controller
             'target_days_display' => '--',
             'low_blink_events' => $telemetry['low_blink_events'] ?? 0,
             'distance_violations' => $telemetry['distance_violations'] ?? 0,
+            'clinical_trend_alert' => $telemetry['clinical_trend_alert'] ?? null,
+            'usage_threshold' => $telemetry['usage_threshold'] ?? null,
+            'ocular_protection_index' => $telemetry['ocular_protection_index'] ?? null,
+            'presence' => $telemetry['presence'] ?? null,
+            'range_label' => $telemetry['range_label'] ?? 'Last 7 Days',
             'labels' => $telemetry['labels'] ?? [],
             'blink_rates' => $telemetry['blink_rates'] ?? [],
             'distances' => $telemetry['distances'] ?? [],
@@ -293,5 +342,20 @@ class DoctorController extends Controller
         }
 
         return rtrim(rtrim(number_format($value, 1, '.', ''), '0'), '.') . 'cm';
+    }
+
+    /**
+     * Only include doctor_profile columns that exist (Hostinger may lag migrations).
+     */
+    private function doctorProfilePayload(array $input): array
+    {
+        $payload = [];
+        foreach ($input as $column => $value) {
+            if (Schema::hasColumn('doctor_profile', $column)) {
+                $payload[$column] = $value;
+            }
+        }
+
+        return $payload;
     }
 }

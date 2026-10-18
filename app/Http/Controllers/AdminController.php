@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\ChildProfile;
 use App\Models\DoctorProfile;
 use App\Models\AuditLog;
+use App\Rules\StrongPassword;
 use App\Services\UserPresenceService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -104,6 +105,15 @@ class AdminController extends Controller
             'clinic' => $profile->clinic ?? ($professional->clinic ?? 'N/A'),
             'specialty' => $profile->specialty ?? ($professional->specialty ?? 'N/A'),
             'license_number' => $profile->license_number ?? ($professional->license_number ?? 'N/A'),
+            'clinic_address' => $this->cleanText($profile?->clinic_address ?? null),
+            'operating_hours' => $this->cleanText($profile?->operating_hours ?? null),
+            'latitude' => ($profile && $profile->latitude !== null && $profile->latitude !== '')
+                ? (float) $profile->latitude
+                : null,
+            'longitude' => ($profile && $profile->longitude !== null && $profile->longitude !== '')
+                ? (float) $profile->longitude
+                : null,
+            'is_partnered_directory_visible' => (bool) ($profile?->is_partnered_directory_visible ?? true),
             'is_verified' => !is_null($professional->email_verified_at),
             'status' => strtolower($professional->status ?? 'active'),
             'created_at' => $professional->created_at ? $professional->created_at->format('M d, Y') : null,
@@ -183,6 +193,31 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('admin', 'professionals', 'stats', 'pagination', 'auditLogs'));
     }
 
+    private function cleanText(?string $value): ?string
+    {
+        $value = trim((string) ($value ?? ''));
+        if ($value === '' || strcasecmp($value, 'N/A') === 0) {
+            return null;
+        }
+
+        return $value;
+    }
+
+    /**
+     * Get a single professional (includes saved clinic address + map pin).
+     */
+    public function getProfessional($professionalId)
+    {
+        $professional = User::with('doctorProfile')
+            ->whereRaw('LOWER(role) = ?', ['doctor'])
+            ->findOrFail($professionalId);
+
+        return response()->json([
+            'success' => true,
+            'professional' => $this->formatProfessional($professional),
+        ]);
+    }
+
     /**
      * Get all professionals
      */
@@ -254,6 +289,11 @@ class AdminController extends Controller
             'specialty' => 'required|string',
             'license_number' => 'required|string',
             'location' => 'required|string',
+            'clinic_address' => 'nullable|string|max:500',
+            'operating_hours' => 'nullable|string|max:255',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'is_partnered_directory_visible' => 'nullable|boolean',
         ]);
 
         // Generate a temporary password
@@ -285,6 +325,11 @@ class AdminController extends Controller
                 'specialty' => $validated['specialty'],
                 'location' => $validated['location'],
                 'license_number' => $validated['license_number'],
+                'clinic_address' => $validated['clinic_address'] ?? $validated['location'],
+                'operating_hours' => $validated['operating_hours'] ?? null,
+                'latitude' => $validated['latitude'] ?? null,
+                'longitude' => $validated['longitude'] ?? null,
+                'is_partnered_directory_visible' => $request->boolean('is_partnered_directory_visible', true),
             ]);
 
             if ($doctorProfile) {
@@ -346,6 +391,11 @@ class AdminController extends Controller
             'specialty' => 'required|string',
             'license_number' => 'required|string',
             'location' => 'required|string',
+            'clinic_address' => 'nullable|string|max:500',
+            'operating_hours' => 'nullable|string|max:255',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'is_partnered_directory_visible' => 'nullable|boolean',
             'status' => 'required|in:active,inactive,suspended,pending',
         ]);
 
@@ -370,6 +420,11 @@ class AdminController extends Controller
                 'specialty' => $validated['specialty'],
                 'location' => $validated['location'],
                 'license_number' => $validated['license_number'],
+                'clinic_address' => $validated['clinic_address'] ?? $validated['location'],
+                'operating_hours' => $validated['operating_hours'] ?? null,
+                'latitude' => $validated['latitude'] ?? null,
+                'longitude' => $validated['longitude'] ?? null,
+                'is_partnered_directory_visible' => $request->boolean('is_partnered_directory_visible', true),
             ]);
 
             if ($doctorProfile) {
@@ -438,7 +493,7 @@ class AdminController extends Controller
             'email' => 'required|email|unique:user,email,' . $admin->user_id . ',user_id',
             'phone' => 'nullable|string',
             'current_password' => 'required_with:new_password',
-            'new_password' => 'nullable|string|min:8|confirmed',
+            'new_password' => ['nullable', 'string', 'confirmed', new StrongPassword()],
         ]);
 
         // Verify current password if changing password

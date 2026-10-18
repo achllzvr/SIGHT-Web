@@ -41,7 +41,13 @@
             <label for="password_confirmation">Confirm New Password</label>
             <input id="password_confirmation" name="password_confirmation" type="password" required>
 
-            <button type="submit">Update Password</button>
+            @include('components.password-strength', [
+                'passwordId' => 'password',
+                'confirmId' => 'password_confirmation',
+                'submitSelector' => 'button[type="submit"]',
+            ])
+
+            <button type="submit" disabled>Update Password</button>
         </form>
     </div>
 </div>

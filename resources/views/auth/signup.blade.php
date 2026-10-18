@@ -479,8 +479,14 @@
                             </div>
                         </div>
 
+                        @include('components.password-strength', [
+                            'passwordId' => 'password',
+                            'confirmId' => 'password_confirmation',
+                            'submitSelector' => '#accountTab .btn-primary',
+                        ])
+
                         <div class="button-single">
-                            <button type="button" class="btn btn-primary" onclick="nextStep()">
+                            <button type="button" class="btn btn-primary" onclick="nextStep()" disabled>
                                 Continue
                             </button>
                         </div>

@@ -11,6 +11,16 @@ use Illuminate\Support\Carbon;
 
 class MetricsService
 {
+    private function analytics(): ClinicalAnalyticsService
+    {
+        return app(ClinicalAnalyticsService::class);
+    }
+
+    private function presence(): UserPresenceService
+    {
+        return app(UserPresenceService::class);
+    }
+
     public function loginChild(string $loginCode, string $password, ?string $deviceId): array
     {
         $child = ChildProfile::with('guardians.user')->where('login_code', $loginCode)->first();
@@ -270,8 +280,10 @@ class MetricsService
 
         // If device data is newer or equal, accept the update
         if ($deviceTimestamp >= $cloudTimestamp) {
+            $ageMax = $this->analytics()->ageMaxForChild($child);
+            $requested = (int) ($payload['daily_limit_minutes'] ?? $limits->daily_limit_minutes);
             $limits->update([
-                'daily_limit_minutes' => $payload['daily_limit_minutes'] ?? $limits->daily_limit_minutes,
+                'daily_limit_minutes' => $this->analytics()->clampDailyLimit($requested, $ageMax),
                 'mode' => $payload['mode'] ?? $limits->mode,
                 'harmful_distance_threshold' => $payload['harmful_distance_threshold'] ?? $limits->harmful_distance_threshold,
                 'critical_distance_threshold' => $payload['critical_distance_threshold'] ?? $limits->critical_distance_threshold,
@@ -337,8 +349,15 @@ class MetricsService
 
         $child->update(['last_sync' => now()]);
 
+        // Touch child user presence so Guardian/Clinician web can show Online while Watch Area is active.
+        $childUser = User::find($child->user_id);
+        if ($childUser) {
+            $this->presence()->touch($childUser);
+        }
+
         return $this->response('success', 'Ping received', [
             'timestamp' => now()->toIso8601String(),
+            'presence' => $childUser ? $this->presence()->summarize($childUser->fresh()) : null,
         ]);
     }
 

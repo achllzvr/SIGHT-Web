@@ -18,12 +18,20 @@ class DoctorProfile extends Model
         'clinic',
         'specialty',
         'location',
+        'clinic_address',
+        'operating_hours',
+        'latitude',
+        'longitude',
         'license_number',
         'is_validated',
+        'is_partnered_directory_visible',
     ];
 
     protected $casts = [
         'is_validated' => 'boolean',
+        'is_partnered_directory_visible' => 'boolean',
+        'latitude' => 'float',
+        'longitude' => 'float',
     ];
 
     public function user()

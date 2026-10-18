@@ -15,6 +15,8 @@ class PatientAccessSessionService
 {
     public function __construct(
         private readonly TemporaryAccessTokenService $tokenService,
+        private readonly ClinicalAnalyticsService $analytics,
+        private readonly UserPresenceService $presence,
     ) {
     }
 
@@ -226,7 +228,7 @@ class PatientAccessSessionService
         return $this->ok('Access history', ['logs' => $rows]);
     }
 
-    public function telemetryForSession(int $clinicianUserId, int $sessionId): array
+    public function telemetryForSession(int $clinicianUserId, int $sessionId, string $range = '7d'): array
     {
         $session = $this->assertActive($sessionId, $clinicianUserId);
         $session->loadMissing('child.user');
@@ -234,75 +236,52 @@ class PatientAccessSessionService
         return $this->ok('Telemetry', [
             'session_id' => $session->id,
             'child' => $this->childPayload($session->child),
-            'telemetry' => $this->buildTelemetry($session->child),
+            'telemetry' => $this->buildTelemetry($session->child, $range),
         ]);
     }
 
-    public function buildTelemetry(?ChildProfile $child): array
+    public function buildTelemetry(?ChildProfile $child, string $range = '7d'): array
     {
         if (!$child) {
             return $this->emptyTelemetry();
         }
 
-        $startDate = now()->subDays(6)->startOfDay();
-        $endDate = now()->endOfDay();
-
-        $metricRows = $child->eyeHealthMetrics()
-            ->whereBetween('timestamp', [$startDate, $endDate])
-            ->selectRaw('DATE(`timestamp`) as metric_date, AVG(avg_blink_rate) as avg_blink_rate, AVG(avg_distance) as avg_distance, AVG(screen_time_minutes) as screen_time_minutes, SUM(strain_events) as strain_events, AVG(health_score) as health_score, MAX(coins) as coins')
-            ->groupByRaw('DATE(`timestamp`)')
-            ->orderBy('metric_date')
-            ->get()
-            ->keyBy('metric_date');
-
-        $labels = [];
-        $blinkRates = [];
-        $distances = [];
-        $screenTimes = [];
-        $strainEvents = [];
-        $healthScores = [];
-        $coinsData = [];
-
-        foreach (CarbonPeriod::create($startDate->toDateString(), $endDate->toDateString()) as $date) {
-            $key = $date->format('Y-m-d');
-            $metric = $metricRows->get($key);
-            $labels[] = $date->format('D');
-            $blinkRates[] = $metric ? round((float) $metric->avg_blink_rate, 1) : null;
-            $distances[] = $metric ? round((float) $metric->avg_distance, 1) : null;
-            $screenTimes[] = $metric ? round((float) $metric->screen_time_minutes, 1) : null;
-            $strainEvents[] = $metric ? (int) $metric->strain_events : null;
-            $healthScores[] = $metric && $metric->health_score !== null ? round((float) $metric->health_score, 1) : null;
-            $coinsData[] = $metric && $metric->coins !== null ? (int) $metric->coins : null;
-        }
-
-        $metricValues = $metricRows->values();
-        $avgDistance = $this->avg($metricValues->pluck('avg_distance')->all());
-        $avgBlink = $this->avg($metricValues->pluck('avg_blink_rate')->all());
-        $avgScreen = $this->avg($metricValues->pluck('screen_time_minutes')->all());
-        $avgHealth = $this->avg($metricValues->pluck('health_score')->all());
-        $latestHealth = $this->latest($metricValues->pluck('health_score')->all());
-        $latestCoins = $this->latest($metricValues->pluck('coins')->all());
+        $dashboard = $this->analytics->getChildDashboardMetrics($child, $range);
+        $series = $dashboard['series'] ?? [];
+        $childUser = $child->user_id ? User::find($child->user_id) : null;
+        $presence = $childUser ? $this->presence->summarize($childUser) : [
+            'presence_status' => 'offline',
+            'presence_label' => 'Offline',
+            'last_active' => 'Never',
+        ];
 
         $scores = $child->eyeHealthScores()->orderByDesc('recorded_date')->limit(14)->get();
 
         return [
             'harmful_distance_cm' => 30,
-            'health_grade' => $this->gradeFromScore($latestHealth ?? $avgHealth),
-            'health_score' => $latestHealth ?? $avgHealth,
-            'latest_coins' => $latestCoins ?? 0,
-            'average_blink_rate' => $avgBlink,
-            'average_distance' => $avgDistance,
-            'average_screen_time' => $avgScreen,
-            'distance_violations' => $metricValues->filter(fn ($row) => (float) $row->avg_distance < 30)->count(),
-            'low_blink_events' => $metricValues->filter(fn ($row) => (float) $row->avg_blink_rate < 12)->count(),
-            'labels' => $labels,
-            'blink_rates' => $blinkRates,
-            'distances' => $distances,
-            'screen_times' => $screenTimes,
-            'strain_events' => $strainEvents,
-            'health_scores' => $healthScores,
-            'coins_data' => $coinsData,
-            'has_data' => $metricValues->isNotEmpty(),
+            'range' => $dashboard['range'],
+            'range_label' => $dashboard['range_label'],
+            'health_grade' => $dashboard['health_grade'],
+            'health_score' => $dashboard['health_score'],
+            'latest_coins' => 0,
+            'average_blink_rate' => $dashboard['mean_blink_rate'],
+            'average_distance' => $dashboard['mean_distance_cm'],
+            'average_screen_time' => $dashboard['mean_screen_time_minutes'],
+            'distance_violations' => null,
+            'low_blink_events' => null,
+            'labels' => $series['labels'] ?? [],
+            'blink_rates' => $series['blink_rates'] ?? [],
+            'distances' => $series['distances'] ?? [],
+            'screen_times' => $series['screen_times'] ?? [],
+            'strain_events' => [],
+            'health_scores' => [],
+            'coins_data' => [],
+            'has_data' => (bool) ($dashboard['has_data'] ?? false),
+            'ocular_protection_index' => $dashboard['ocular_protection_index'] ?? null,
+            'usage_threshold' => $dashboard['usage_threshold'] ?? null,
+            'clinical_trend_alert' => $dashboard['clinical_trend_alert'] ?? null,
+            'age_max_minutes' => $dashboard['age_max_minutes'] ?? 120,
+            'presence' => $presence,
             'scores' => $scores->map(fn ($s) => [
                 'daily_score' => $s->daily_score,
                 'grade' => $s->grade,
