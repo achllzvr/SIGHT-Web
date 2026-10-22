@@ -503,30 +503,28 @@
                     @endif
                 </div>
                 <div class="session-banner__actions">
-                    <a class="btn btn-outline-success btn-sm rounded-pill" href="{{ route('doctor.access.report', $sessionId) }}">
+                    <a class="btn btn-outline-success btn-sm rounded-pill" href="{{ route('doctor.access.report', $sessionId) }}?range={{ $range ?? '7d' }}">
                         <i class="bi bi-filetype-pdf"></i> Export PDF
                     </a>
                     <button id="endVisitBtn" class="btn btn-outline-danger btn-sm rounded-pill">End Visit</button>
                 </div>
             </div>
 
+            @php $activeRange = $range ?? ($dashboardData['range'] ?? '7d'); @endphp
             <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
                 <label class="mb-0 fw-semibold" for="telemetryRange">Historical range</label>
                 <select id="telemetryRange" class="form-select form-select-sm" style="max-width: 220px;">
-                    <option value="7d" selected>Last 7 Days</option>
-                    <option value="30d">Last Month</option>
-                    <option value="90d">Last 3 Months</option>
-                    <option value="180d">Last 6 Months</option>
-                    <option value="365d">Last Year</option>
-                    <option value="lifetime">Lifetime</option>
+                    @foreach(['7d'=>'Last 7 Days','30d'=>'Last Month','90d'=>'Last 3 Months','180d'=>'Last 6 Months','365d'=>'Last Year','lifetime'=>'Lifetime'] as $val => $label)
+                        <option value="{{ $val }}" @selected($activeRange === $val)>{{ $label }}</option>
+                    @endforeach
                 </select>
                 <span id="childPresenceBadge" class="badge rounded-pill text-bg-secondary">
                     Device: {{ $dashboardData['presence']['presence_label'] ?? 'Unknown' }}
                 </span>
-                @if(!empty($dashboardData['clinical_trend_alert']['overall_condition']))
+                @if($hasTelemetry && !empty($dashboardData['clinical_trend_alert']['overall_condition']) && ($dashboardData['clinical_trend_alert']['overall_condition'] ?? '') !== 'NO_DATA')
                 <span class="badge rounded-pill text-bg-warning">Trend: {{ $dashboardData['clinical_trend_alert']['overall_condition'] }}</span>
                 @endif
-                @if(!empty($dashboardData['usage_threshold']['badge']))
+                @if($hasTelemetry && !empty($dashboardData['usage_threshold']['badge']))
                 <span class="badge rounded-pill text-bg-info">Usage: {{ $dashboardData['usage_threshold']['badge'] }}</span>
                 @endif
             </div>
@@ -535,11 +533,11 @@
                 <h3 class="d-flex align-items-center gap-2"><i class="bi bi-info-circle"></i> How to read this visit snapshot</h3>
                 <p>
                     These figures come from the child’s <strong>LUMI mobile app</strong>. During Watch sessions, on-device face tracking records blink rate and viewing distance; the app curates those samples into short metric windows and the parent syncs them to LUMI.
-                    Charts below cover the <strong>selected historical range</strong> (default last 7 days). Summary cards use that same window. Live device status refreshes about every 15 seconds while this page is open.
+                    Charts below cover <strong>{{ $dashboardData['range_label'] ?? 'the selected historical range' }}</strong>. Summary cards use that same window. Live device status refreshes about every 15 seconds while this page is open.
                     @if(!empty($lastSync))
-                        Last parent sync: <strong>{{ \Carbon\Carbon::parse($lastSync)->format('M d, Y g:i A') }}</strong>.
+                        Last metrics sync: <strong>{{ \Carbon\Carbon::parse($lastSync)->format('M d, Y g:i A') }}</strong>.
                     @else
-                        No parent sync timestamp is on file yet for this child.
+                        No metrics sync timestamp is on file yet for this child.
                     @endif
                 </p>
                 <p>
@@ -573,7 +571,7 @@
                     <div class="panel kpi-card">
                         <div class="kpi-label">&lt; 30 cm Violations</div>
                         <div class="kpi-value {{ ($dashboardData['distance_violations'] ?? 0) > 0 ? 'text-warning' : '' }}">{{ $dashboardData['distance_violations'] }}</div>
-                        <p class="kpi-hint">Number of days in this 7-day window whose <em>daily average</em> distance fell below 30 cm (near-work risk days).</p>
+                        <p class="kpi-hint">Number of days in {{ $dashboardData['range_label'] ?? 'this window' }} whose <em>daily average</em> distance fell below 30 cm (near-work risk days).</p>
                     </div>
                 </div>
                 @if($hasTelemetry)
@@ -604,15 +602,15 @@
             @if(!$hasTelemetry)
             <div class="empty-state">
                 <i class="bi bi-cloud-slash d-block mb-3"></i>
-                <h3 class="h6 text-dark mb-2">No eye-health data yet</h3>
-                <p class="mb-0">Ask the parent to open LUMI, let the child use Watch tracking, then sync from the parent account.@if(empty($lastSync)) No sync has been recorded for this child yet.@else Last sync: {{ \Carbon\Carbon::parse($lastSync)->format('M d, Y g:i A') }}.@endif</p>
+                <h3 class="h6 text-dark mb-2">No eye-care data in this time range yet</h3>
+                <p class="mb-0">Ask the parent to open LUMI, let the child use Watch tracking, then sync from the parent account. Device Online only means the app is awake—it does not guarantee metrics for {{ $dashboardData['range_label'] ?? 'this range' }}.@if(empty($lastSync)) No metrics sync has been recorded for this child yet.@else Last metrics sync: {{ \Carbon\Carbon::parse($lastSync)->format('M d, Y g:i A') }}.@endif</p>
             </div>
             @else
             <div class="chart-grid">
                 <div>
                     <div class="panel chart-panel">
                         <h3 class="h6">Blink Rate &amp; Viewing Distance</h3>
-                        <p class="text-muted small">Daily averages over the last 7 days. Red dashed line = 30 cm near-work warning.</p>
+                        <p class="text-muted small">Daily averages over {{ $dashboardData['range_label'] ?? 'the selected range' }}. Red dashed line = 30 cm near-work warning.</p>
                         <div class="chart-canvas"><canvas id="complianceChart"></canvas></div>
                         <div class="chart-guide">
                             <p><strong>What this shows:</strong> Blink rate (blinks/min) and average face-to-screen distance (cm) for each day.</p>
@@ -658,7 +656,7 @@
                                     <div class="accordion-body">
                                         <ul class="ref-list">
                                             <li><strong>Data source.</strong> Parent-authorized LUMI child account. Metrics are captured on the phone during Watch tracking (face present), curated locally, then synced to LUMI when the parent is online.</li>
-                                            <li><strong>Time window.</strong> This view always shows the rolling last 7 calendar days. Days without synced data appear as gaps on charts.</li>
+                                            <li><strong>Time window.</strong> This view follows the selected historical range ({{ $dashboardData['range_label'] ?? 'Last 7 Days' }}). Days without synced data appear as gaps on charts.</li>
                                             <li><strong>Blink rate.</strong> Estimated blinks per minute from on-device facial landmarks. Sustained low rates can increase tear-film evaporation and symptoms of digital eye strain.</li>
                                             <li><strong>Viewing distance.</strong> Estimated face-to-device distance in centimeters. The portal treats &lt; 30 cm as the harmful near-work zone (≈ &gt; 3.3 D accommodative demand).</li>
                                             <li><strong>Strain events.</strong> Count of close-range distance samples inside each metric window (threshold 30 cm), summed per day—not a medical diagnosis of “eye strain.”</li>
@@ -1232,8 +1230,9 @@ if (hasSession && hasTelemetry && dash?.has_data) {
     setInterval(poll, 15000);
     if (rangeEl) {
         rangeEl.addEventListener('change', () => {
-            const range = rangeEl.value;
-            window.location.search = new URLSearchParams({ range }).toString();
+            const params = new URLSearchParams(window.location.search);
+            params.set('range', rangeEl.value);
+            window.location.search = params.toString();
         });
     }
 })();

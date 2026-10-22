@@ -96,7 +96,9 @@ class MetricsService
             $inserted++;
         }
 
-        $child->update(['last_sync' => now()]);
+        if ($inserted > 0) {
+            $child->update(['last_sync' => now()]);
+        }
 
         return $this->response('success', 'Metrics synced successfully', [
             'inserted_records' => $inserted,
@@ -171,9 +173,8 @@ class MetricsService
         if (!empty($records)) {
             EyeHealthMetrics::insert($records);
             $inserted = count($records);
+            $child->update(['last_sync' => now()]);
         }
-
-        $child->update(['last_sync' => now()]);
 
         return $this->response('success', 'Batch metrics ingested successfully', [
             'inserted_records' => $inserted,
@@ -347,9 +348,7 @@ class MetricsService
             return $this->response('error', 'Unauthorized', null, ['authorization' => ['Unauthorized']], 403);
         }
 
-        $child->update(['last_sync' => now()]);
-
-        // Touch child user presence so Guardian/Clinician web can show Online while Watch Area is active.
+        // Heartbeat only — do not advance last_sync (that marks last metrics write).
         $childUser = User::find($child->user_id);
         if ($childUser) {
             $this->presence()->touch($childUser);
@@ -358,6 +357,7 @@ class MetricsService
         return $this->response('success', 'Ping received', [
             'timestamp' => now()->toIso8601String(),
             'presence' => $childUser ? $this->presence()->summarize($childUser->fresh()) : null,
+            'last_sync' => optional($child->last_sync)?->toIso8601String(),
         ]);
     }
 

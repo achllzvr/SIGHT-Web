@@ -20,11 +20,13 @@ class ClinicalAnalyticsService
     public const GRADE_GOOD = 'Good';
     public const GRADE_FAIR = 'Fair';
     public const GRADE_NEEDS_ATTENTION = 'Needs Attention';
+    public const GRADE_NO_DATA = 'No Data';
 
     public const ALERT_SAFE = 'SAFE';
     public const ALERT_CAUTION = 'CAUTION';
     public const ALERT_AT_RISK = 'AT_RISK';
     public const ALERT_CRITICAL = 'CRITICAL';
+    public const ALERT_NO_DATA = 'NO_DATA';
 
     private const TBUT_SECONDS = 6.0;
     private const SEVERITY = [
@@ -224,7 +226,7 @@ class ClinicalAnalyticsService
     public function gradeFromScore(?float $score): string
     {
         if ($score === null) {
-            return self::GRADE_NEEDS_ATTENTION;
+            return self::GRADE_NO_DATA;
         }
         if ($score >= 85) {
             return self::GRADE_EXCELLENT;
@@ -237,6 +239,33 @@ class ClinicalAnalyticsService
         }
 
         return self::GRADE_NEEDS_ATTENTION;
+    }
+
+    /**
+     * Neutral alert payload when the selected range has no metric rows.
+     *
+     * @return array<string, mixed>
+     */
+    public function emptyDataAlert(int $ageMax): array
+    {
+        return [
+            'myopia_status' => self::ALERT_NO_DATA,
+            'dry_eye_status' => self::ALERT_NO_DATA,
+            'overall_condition' => self::ALERT_NO_DATA,
+            'alert_title' => 'No eye-care data in this time range yet',
+            'what_is_wrong_text' => 'LUMI has not received synced Watch tracking for this window.',
+            'why_showing_clinical_basis_text' => 'Open the mobile app, use Watch tracking, then sync from the parent account. Trends appear after the first successful metrics sync.',
+            'show_professional_cta' => false,
+            'metrics_snapshot' => [
+                'mean_distance_cm' => null,
+                'mean_blink_rate' => null,
+                'mean_screen_time_minutes' => null,
+                'opi' => null,
+                'pct_sessions_below_30cm' => null,
+                'pct_days_violating' => null,
+                'age_max_minutes' => $ageMax,
+            ],
+        ];
     }
 
     /**
@@ -273,14 +302,46 @@ class ClinicalAnalyticsService
 
         $ageMax = $this->ageMaxForChild($child);
         $ageYears = $this->chronologicalAgeYears($child->birthdate ? (string) $child->birthdate : null);
-        $usage = $this->interpretUsageThreshold($meanScreen ?? 0, $ageMax);
-        $opi = $this->calculateOcularProtectionIndex((float) ($meanBlink ?? 0));
+        $hasData = $daily->isNotEmpty();
 
-        $alert = $this->evaluateLongitudinalReferralRisk($child, $range, $daily, $meanDistance, $meanBlink, $meanScreen, $ageMax);
+        $distanceViolations = 0;
+        $lowBlinkEvents = 0;
+        foreach ($daily as $day) {
+            if ($day->avg_distance !== null && (float) $day->avg_distance < 30) {
+                $distanceViolations++;
+            }
+            if ($day->avg_blink_rate !== null && (float) $day->avg_blink_rate < 12) {
+                $lowBlinkEvents++;
+            }
+        }
 
-        $grade = $this->gradeFromScore($meanHealth);
-        if ($alert['overall_condition'] === self::ALERT_CRITICAL || $usage['tier'] >= 5) {
-            $grade = self::GRADE_NEEDS_ATTENTION;
+        if (!$hasData) {
+            $usage = $this->interpretUsageThreshold(0, $ageMax);
+            $opi = [
+                'blink_rate' => 0.0,
+                'ibi_seconds' => null,
+                'opi' => null,
+                'level' => 0,
+                'label' => 'No blink data in this range',
+            ];
+            $alert = $this->emptyDataAlert($ageMax);
+            $grade = self::GRADE_NO_DATA;
+        } else {
+            $usage = $this->interpretUsageThreshold($meanScreen ?? 0, $ageMax);
+            $opi = $meanBlink !== null
+                ? $this->calculateOcularProtectionIndex((float) $meanBlink)
+                : [
+                    'blink_rate' => 0.0,
+                    'ibi_seconds' => null,
+                    'opi' => null,
+                    'level' => 0,
+                    'label' => 'No blink samples in this range',
+                ];
+            $alert = $this->evaluateLongitudinalReferralRisk($child, $range, $daily, $meanDistance, $meanBlink, $meanScreen, $ageMax);
+            $grade = $this->gradeFromScore($meanHealth);
+            if ($alert['overall_condition'] === self::ALERT_CRITICAL || $usage['tier'] >= 5) {
+                $grade = self::GRADE_NEEDS_ATTENTION;
+            }
         }
 
         $limits = SessionLimits::where('child_id', $child->child_id)->first();
@@ -292,7 +353,7 @@ class ClinicalAnalyticsService
             'age_years' => $ageYears,
             'age_max_minutes' => $ageMax,
             'configured_daily_limit_minutes' => $limits?->daily_limit_minutes,
-            'has_data' => $daily->isNotEmpty(),
+            'has_data' => $hasData,
             'health_score' => $meanHealth !== null ? round($meanHealth, 1) : null,
             'health_grade' => $grade,
             'mean_distance_cm' => $meanDistance !== null ? round($meanDistance, 1) : null,
@@ -302,6 +363,8 @@ class ClinicalAnalyticsService
             'ocular_protection_index' => $opi,
             'usage_threshold' => $usage,
             'clinical_trend_alert' => $alert,
+            'distance_violations' => $distanceViolations,
+            'low_blink_events' => $lowBlinkEvents,
             'series' => $series,
             'unlock_milestones' => $this->unlockMilestones($ageYears),
         ];
@@ -331,10 +394,15 @@ class ClinicalAnalyticsService
             $daily = $this->aggregateByDay($rows);
             $meanDistance = $this->mean($daily->pluck('avg_distance')->filter(fn ($v) => $v !== null)->all());
             $meanBlink = $this->mean($daily->pluck('avg_blink_rate')->filter(fn ($v) => $v !== null)->all());
-            $meanScreen = $this->mean($daily->pluck('screen_time_minutes')->all()) ?? 0.0;
+            $meanScreen = $this->mean($daily->pluck('screen_time_minutes')->all());
         }
 
         $ageMax = $ageMax ?? $this->ageMaxForChild($child);
+
+        if ($daily->isEmpty()) {
+            return $this->emptyDataAlert($ageMax);
+        }
+
         $d = $meanDistance;
         $b = $meanBlink;
         $t = $meanScreen ?? 0.0;
@@ -361,7 +429,15 @@ class ClinicalAnalyticsService
         $tPct = ($t / max(1, $ageMax)) * 100.0;
 
         $myopia = $this->classifyMyopia($d, $tPct, $pctSessionsBelow30, $pctDaysViolate);
-        $opiLive = $this->calculateOcularProtectionIndex((float) ($b ?? 0));
+        $opiLive = $b !== null
+            ? $this->calculateOcularProtectionIndex((float) $b)
+            : [
+                'blink_rate' => 0.0,
+                'ibi_seconds' => null,
+                'opi' => null,
+                'level' => 0,
+                'label' => 'No blink samples in this range',
+            ];
         $dryEye = $this->classifyDryEye($b, $opiLive['opi']);
 
         $overall = $this->maxAlert($myopia, $dryEye);
@@ -389,6 +465,10 @@ class ClinicalAnalyticsService
 
     private function classifyMyopia(?float $d, float $tPct, float $pctSessionsBelow30, float $pctDaysViolate): string
     {
+        // Null distance = no sample in range — do not invent CAUTION/CRITICAL.
+        if ($d === null && $tPct <= 0 && $pctSessionsBelow30 <= 0 && $pctDaysViolate <= 0) {
+            return self::ALERT_SAFE;
+        }
         if ($d !== null && $d < 20) {
             return self::ALERT_CRITICAL;
         }
@@ -408,7 +488,7 @@ class ClinicalAnalyticsService
             return self::ALERT_CAUTION;
         }
         if ($d === null) {
-            return self::ALERT_CAUTION;
+            return self::ALERT_SAFE;
         }
 
         return self::ALERT_SAFE;
@@ -416,7 +496,11 @@ class ClinicalAnalyticsService
 
     private function classifyDryEye(?float $b, ?float $opi): string
     {
-        if ($b === null || $b <= 0) {
+        // Null blink = no sample — not CRITICAL.
+        if ($b === null) {
+            return self::ALERT_SAFE;
+        }
+        if ($b <= 0) {
             return self::ALERT_CRITICAL;
         }
         if ($b < 6 || ($opi !== null && $opi < 0.60)) {
@@ -498,7 +582,7 @@ class ClinicalAnalyticsService
 
     /**
      * @param  Collection<string, object>  $daily
-     * @return array{labels: list<string>, distances: list<?float>, blink_rates: list<?float>, screen_times: list<float>}
+     * @return array{labels: list<string>, distances: list<?float>, blink_rates: list<?float>, screen_times: list<float>, strain_events: list<float>, health_scores: list<?float>}
      */
     private function bucketSeries(Collection $daily, string $bucket, Carbon $start, Carbon $end): array
     {
@@ -507,6 +591,8 @@ class ClinicalAnalyticsService
             $distances = [];
             $blinks = [];
             $screens = [];
+            $strains = [];
+            $healthScores = [];
             $cursor = $start->copy();
             while ($cursor->lte($end)) {
                 $key = $cursor->toDateString();
@@ -515,6 +601,8 @@ class ClinicalAnalyticsService
                 $distances[] = $row && $row->avg_distance !== null ? round((float) $row->avg_distance, 1) : null;
                 $blinks[] = $row && $row->avg_blink_rate !== null ? round((float) $row->avg_blink_rate, 1) : null;
                 $screens[] = $row ? round((float) $row->screen_time_minutes, 1) : 0.0;
+                $strains[] = $row ? round((float) ($row->strain_events ?? 0), 1) : 0.0;
+                $healthScores[] = $row && $row->avg_health_score !== null ? round((float) $row->avg_health_score, 1) : null;
                 $cursor->addDay();
             }
 
@@ -522,6 +610,8 @@ class ClinicalAnalyticsService
                 'distances' => $distances,
                 'blink_rates' => $blinks,
                 'screen_times' => $screens,
+                'strain_events' => $strains,
+                'health_scores' => $healthScores,
             ];
         }
 
@@ -535,13 +625,18 @@ class ClinicalAnalyticsService
         $distances = [];
         $blinks = [];
         $screens = [];
+        $strains = [];
+        $healthScores = [];
         foreach ($groups as $key => $group) {
             $labels[] = $key;
             $dVals = $group->pluck('avg_distance')->filter(fn ($v) => $v !== null);
             $bVals = $group->pluck('avg_blink_rate')->filter(fn ($v) => $v !== null);
+            $hVals = $group->pluck('avg_health_score')->filter(fn ($v) => $v !== null);
             $distances[] = $dVals->isEmpty() ? null : round((float) $dVals->avg(), 1);
             $blinks[] = $bVals->isEmpty() ? null : round((float) $bVals->avg(), 1);
             $screens[] = round((float) $group->avg('screen_time_minutes'), 1);
+            $strains[] = round((float) $group->sum('strain_events'), 1);
+            $healthScores[] = $hVals->isEmpty() ? null : round((float) $hVals->avg(), 1);
         }
 
         return [
@@ -549,6 +644,8 @@ class ClinicalAnalyticsService
             'distances' => $distances,
             'blink_rates' => $blinks,
             'screen_times' => $screens,
+            'strain_events' => $strains,
+            'health_scores' => $healthScores,
         ];
     }
 

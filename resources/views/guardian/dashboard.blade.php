@@ -62,12 +62,15 @@
         </form>
 
         @if($dashboard)
-            @php $alert = $dashboard['clinical_trend_alert'] ?? null; @endphp
+            @php
+                $hasData = (bool) ($dashboard['has_data'] ?? false);
+                $alert = $hasData ? ($dashboard['clinical_trend_alert'] ?? null) : null;
+            @endphp
             <div class="row g-3 mb-3">
-                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Health Grade</div><div class="fs-4 fw-bold">{{ $dashboard['health_grade'] ?? '—' }}</div></div></div>
-                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Avg Distance</div><div class="fs-4 fw-bold">{{ $dashboard['mean_distance_cm'] ?? '—' }} cm</div></div></div>
-                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Avg Blink</div><div class="fs-4 fw-bold">{{ $dashboard['mean_blink_rate'] ?? '—' }}/min</div></div></div>
-                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Avg Screen Time</div><div class="fs-4 fw-bold">{{ $dashboard['mean_screen_time_minutes'] ?? '—' }} min</div></div></div>
+                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Health Grade</div><div class="fs-4 fw-bold">{{ $hasData ? ($dashboard['health_grade'] ?? '—') : 'No Data' }}</div></div></div>
+                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Avg Distance</div><div class="fs-4 fw-bold">{{ $hasData && $dashboard['mean_distance_cm'] !== null ? $dashboard['mean_distance_cm'].' cm' : '—' }}</div></div></div>
+                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Avg Blink</div><div class="fs-4 fw-bold">{{ $hasData && $dashboard['mean_blink_rate'] !== null ? $dashboard['mean_blink_rate'].'/min' : '—' }}</div></div></div>
+                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Avg Screen Time</div><div class="fs-4 fw-bold">{{ $hasData && $dashboard['mean_screen_time_minutes'] !== null ? $dashboard['mean_screen_time_minutes'].' min' : '—' }}</div></div></div>
             </div>
 
             @php
@@ -82,7 +85,7 @@
             <div class="card-soft mb-3">
                 <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
                     <h2 class="h5 mb-0">How eyes are doing lately</h2>
-                    @if($alert)
+                    @if($hasData && $alert)
                         <span class="badge rounded-pill
                             @if($overall === 'SAFE') badge-safe
                             @elseif($overall === 'CAUTION') badge-caution
@@ -94,14 +97,17 @@
                         <span class="badge text-bg-light text-dark">Blink comfort: {{ $conditionPlain[$alert['dry_eye_status'] ?? ''] ?? '—' }}</span>
                     @endif
                 </div>
-                @if($alert)
+                @if(!$hasData)
+                    <p class="fw-semibold mb-1">No eye-care data in this time range yet</p>
+                    <p class="mb-0 text-muted">Device Online only means the app is awake. After Watch tracking, sync from the parent account so trends can appear here.</p>
+                @elseif($alert)
                     <p class="fw-semibold mb-1">{{ $alert['alert_title'] ?? '' }}</p>
                     <p class="mb-1"><strong>What we noticed:</strong> {{ $alert['what_is_wrong_text'] ?? '' }}</p>
                     <p class="mb-0 text-muted"><strong>Why this matters:</strong> {{ $alert['why_showing_clinical_basis_text'] ?? '' }}</p>
                 @else
                     <p class="mb-0 text-muted">No tips yet for this time range.</p>
                 @endif
-                @if(!empty($dashboard['usage_threshold']))
+                @if($hasData && !empty($dashboard['usage_threshold']))
                     <hr>
                     <p class="mb-0"><strong>Screen time:</strong> {{ $dashboard['usage_threshold']['badge'] ?? '' }} — {{ $dashboard['usage_threshold']['label'] ?? '' }}</p>
                 @endif

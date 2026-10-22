@@ -38,6 +38,10 @@ class DoctorController extends Controller
         $selectedPatient = null;
         $dashboardData = $this->formatDashboardFromTelemetry(null);
         $sessionId = null;
+        $range = $request->input('range', '7d');
+        if (!in_array($range, ['7d', '30d', '90d', '180d', '365d', 'lifetime'], true)) {
+            $range = '7d';
+        }
 
         $openSettings = $request->boolean('settings')
             || $request->session()->has('success')
@@ -62,10 +66,6 @@ class DoctorController extends Controller
                 'patient_code' => $active['child']['patient_code'] ?? null,
                 'last_sync' => $active['child']['last_sync'] ?? null,
             ];
-            $range = $request->input('range', '7d');
-            if (!in_array($range, ['7d', '30d', '90d', '180d', '365d', 'lifetime'], true)) {
-                $range = '7d';
-            }
             // Rebuild telemetry for selected multi-horizon range when child is available.
             $childId = $selectedPatient['id'] ?? null;
             if ($childId) {
@@ -87,7 +87,8 @@ class DoctorController extends Controller
             'dashboardData',
             'sessionId',
             'accessLogs',
-            'openSettings'
+            'openSettings',
+            'range'
         ));
     }
 
@@ -269,6 +270,7 @@ class DoctorController extends Controller
                 'usage_threshold' => null,
                 'ocular_protection_index' => null,
                 'presence' => null,
+                'range' => '7d',
                 'range_label' => 'Last 7 Days',
             ];
         }
@@ -290,6 +292,7 @@ class DoctorController extends Controller
             'usage_threshold' => $telemetry['usage_threshold'] ?? null,
             'ocular_protection_index' => $telemetry['ocular_protection_index'] ?? null,
             'presence' => $telemetry['presence'] ?? null,
+            'range' => $telemetry['range'] ?? '7d',
             'range_label' => $telemetry['range_label'] ?? 'Last 7 Days',
             'labels' => $telemetry['labels'] ?? [],
             'blink_rates' => $telemetry['blink_rates'] ?? [],
