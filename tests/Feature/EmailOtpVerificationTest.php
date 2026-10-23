@@ -72,7 +72,7 @@ class EmailOtpVerificationTest extends TestCase
         $user->refresh();
         $this->assertNotNull($user->email_verified_at);
         $this->assertTrue(
-            $user->tokens()->where('name', 'guardian-mobile')->exists(),
+            $user->tokens()->where('name', 'like', 'guardian-mobile%')->exists(),
             'OTP verify should mint a guardian-mobile Sanctum token'
         );
     }

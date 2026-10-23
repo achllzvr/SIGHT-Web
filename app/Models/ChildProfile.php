@@ -18,6 +18,7 @@ class ChildProfile extends Model
         'login_code',
         'calibration_baseline',
         'fcm_token',
+        'equipped_skin_key',
         'updated_at',
     ];
 

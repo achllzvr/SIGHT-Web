@@ -69,6 +69,9 @@ Route::prefix('mobile')->group(function () {
         Route::post('/activity-logs', [AccessApiController::class, 'ingestActivity']);
         Route::post('/legal-agreements', [AccessApiController::class, 'acceptLegalDocuments']);
 
+        Route::get('/child/{child_id}/inventory', [MobileApiController::class, 'getInventory']);
+        Route::post('/child/{child_id}/inventory/purchase', [MobileApiController::class, 'purchaseInventoryItem']);
+        Route::put('/child/{child_id}/inventory/equip', [MobileApiController::class, 'equipInventoryItem']);
         Route::post('/child/{child_id}/sync/metrics', [MobileApiController::class, 'syncMetrics']);
         Route::post('/child/{child_id}/sync/metrics/batch', [MobileApiController::class, 'ingestBatchMetrics']);
         Route::put('/child/{child_id}/sync/pet', [MobileApiController::class, 'syncPet']);

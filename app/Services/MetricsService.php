@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ChildInventory;
 use App\Models\ChildProfile;
 use App\Models\EyeHealthMetrics;
 use App\Models\SessionLimits;
@@ -42,8 +43,9 @@ class MetricsService
 
         // Extract guardian email for Flutter caching
         $guardianEmail = $child->guardians->first()?->user?->email ?? '';
-        $childUser->tokens()->where('name', 'child-mobile')->delete(); 
-        $token = $childUser->createToken('child-mobile')->plainTextToken;
+        // Per-device token — never revoke other devices on login.
+        $deviceKey = preg_replace('/[^A-Za-z0-9\-_]/', '', (string) ($deviceId ?? '')) ?: ('legacy-' . \Illuminate\Support\Str::random(12));
+        $token = $childUser->createToken('child-mobile:' . substr($deviceKey, 0, 80))->plainTextToken;
 
         return $this->response('success', 'Child login successful', [
             'display_name' => $childUser->display_name ?? 'Child',
@@ -359,6 +361,86 @@ class MetricsService
             'presence' => $childUser ? $this->presence()->summarize($childUser->fresh()) : null,
             'last_sync' => optional($child->last_sync)?->toIso8601String(),
         ]);
+    }
+
+    /** Child themself or a linked guardian may access the child's inventory. */
+    private function authorizeChildAccess(int $childId, int $authUserId): ChildProfile|array
+    {
+        $child = ChildProfile::find($childId);
+        if (!$child) {
+            return $this->response('error', 'Child not found', null, ['child_id' => ['Child not found']], 404);
+        }
+        $isChild = (int) $child->user_id === (int) $authUserId;
+        $isLinkedGuardian = \Illuminate\Support\Facades\DB::table('guardian_child_link')
+            ->join('guardian_profile', 'guardian_child_link.guardian_id', '=', 'guardian_profile.guardian_id')
+            ->where('guardian_child_link.child_id', $childId)
+            ->where('guardian_profile.user_id', $authUserId)
+            ->exists();
+        if (!$isChild && !$isLinkedGuardian) {
+            return $this->response('error', 'Unauthorized', null, ['authorization' => ['Unauthorized']], 403);
+        }
+        return $child;
+    }
+
+    private function inventoryPayload(ChildProfile $child): array
+    {
+        $owned = ChildInventory::where('child_id', $child->child_id)
+            ->whereIn('item_key', array_keys(MascotSkinCatalog::ITEMS))
+            ->pluck('item_key')
+            ->all();
+        $equipped = $child->equipped_skin_key;
+        if (!MascotSkinCatalog::isKnown((string) $equipped)) {
+            $equipped = MascotSkinCatalog::DEFAULT_KEY;
+        }
+        return [
+            'child_id' => (int) $child->child_id,
+            'owned_item_keys' => array_values(array_unique(array_merge([MascotSkinCatalog::DEFAULT_KEY], $owned))),
+            'equipped_skin_key' => $equipped,
+        ];
+    }
+
+    public function getInventory(int $childId, int $authUserId): array
+    {
+        $child = $this->authorizeChildAccess($childId, $authUserId);
+        if (is_array($child)) return $child;
+        return $this->response('success', 'Inventory fetched successfully', $this->inventoryPayload($child));
+    }
+
+    /// Record a skin purchase. Idempotent: the (child_id, item_key) unique
+    /// index + firstOrCreate mean a retried offline purchase never duplicates.
+    /// Stars stay client-led (see syncPet currency backup); this validates the
+    /// catalog item and records account ownership only.
+    public function purchaseInventoryItem(int $childId, int $authUserId, string $itemKey): array
+    {
+        $child = $this->authorizeChildAccess($childId, $authUserId);
+        if (is_array($child)) return $child;
+        $item = MascotSkinCatalog::item($itemKey);
+        if (!$item) {
+            return $this->response('error', 'Unknown item', null, ['item_key' => ['Unknown item']], 422);
+        }
+        $record = ChildInventory::firstOrCreate(
+            ['child_id' => $child->child_id, 'item_key' => $itemKey],
+            ['item_name' => $item['name'], 'cost' => $item['cost'], 'purchase_date' => now()],
+        );
+        return $this->response('success', 'Item recorded', array_merge($this->inventoryPayload($child->fresh()), [
+            'inventory_id' => (int) $record->inventory_id,
+        ]));
+    }
+
+    public function equipInventoryItem(int $childId, int $authUserId, string $itemKey): array
+    {
+        $child = $this->authorizeChildAccess($childId, $authUserId);
+        if (is_array($child)) return $child;
+        if (!MascotSkinCatalog::isKnown($itemKey)) {
+            return $this->response('error', 'Unknown item', null, ['item_key' => ['Unknown item']], 422);
+        }
+        $owned = $itemKey === MascotSkinCatalog::DEFAULT_KEY
+            || ChildInventory::where('child_id', $child->child_id)->where('item_key', $itemKey)->exists();
+        if (!$owned) {
+            return $this->response('error', 'Item not owned', null, ['item_key' => ['Item not owned']], 422);
+        }
+        $child->update(['equipped_skin_key' => $itemKey]);
+        return $this->response('success', 'Skin equipped', $this->inventoryPayload($child->fresh()));
     }
 
     public function getConfig(): array

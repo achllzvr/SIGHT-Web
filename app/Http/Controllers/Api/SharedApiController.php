@@ -34,6 +34,8 @@ class SharedApiController extends Controller
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|string',
+            'device_id' => 'nullable|string|max:128',
+            'device_name' => 'nullable|string|max:128',
         ]);
 
         $user = User::where('email', $request->email)
@@ -91,10 +93,10 @@ class SharedApiController extends Controller
 
         $this->presence->touch($user);
 
-        // Rotate only the mobile bearer token. Do not revoke other Sanctum tokens
-        // (e.g. future web API tokens) so concurrent mobile + web sessions coexist.
-        $user->tokens()->where('name', 'guardian-mobile')->delete();
-        $token = $user->createToken('guardian-mobile')->plainTextToken;
+        // Per-device token: each install gets its own token and login never
+        // revokes other devices (unlimited concurrent devices per account).
+        $deviceKey = preg_replace('/[^A-Za-z0-9\-_]/', '', (string) $request->input('device_id', '')) ?: ('legacy-' . \Illuminate\Support\Str::random(12));
+        $token = $user->createToken('guardian-mobile:' . substr($deviceKey, 0, 80))->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful',

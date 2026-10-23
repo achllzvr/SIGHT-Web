@@ -74,3 +74,12 @@ Route::prefix('guardian')->middleware(['auth', 'role:guardian'])->group(function
     Route::get('/children', [GuardianController::class, 'children'])->name('guardian.children');
     Route::get('/poll', [GuardianController::class, 'poll'])->name('guardian.poll');
 });
+
+// Branded 404 for any unmatched web page (all roles + guests).
+// /api/* keeps JSON 404s for API clients.
+Route::fallback(function (\Illuminate\Http\Request $request) {
+    if ($request->is('api/*') || $request->expectsJson()) {
+        return response()->json(['message' => 'Not Found'], 404);
+    }
+    return response()->view('errors.404', [], 404);
+});

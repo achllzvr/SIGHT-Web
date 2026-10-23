@@ -269,6 +269,8 @@ class DoctorController extends Controller
                 'clinical_trend_alert' => null,
                 'usage_threshold' => null,
                 'ocular_protection_index' => null,
+                'opi_display' => '--',
+                'diopters_display' => '--',
                 'presence' => null,
                 'range' => '7d',
                 'range_label' => 'Last 7 Days',
@@ -276,6 +278,12 @@ class DoctorController extends Controller
         }
 
         $healthScore = $telemetry['health_score'] ?? null;
+        $opi = $telemetry['ocular_protection_index'] ?? null;
+        $opiDisplay = '--';
+        if (is_array($opi) && ($opi['opi'] ?? null) !== null) {
+            $opiDisplay = number_format((float) $opi['opi'], 2) . ' · Level ' . ($opi['level'] ?? '—');
+        }
+        $diopters = $telemetry['mean_diopters'] ?? null;
 
         return [
             'health_grade' => $telemetry['health_grade'] ?? 'No Data',
@@ -285,6 +293,8 @@ class DoctorController extends Controller
             'screen_time_display' => $this->formatDuration($telemetry['average_screen_time'] ?? null),
             'blink_rate_display' => $this->formatRate($telemetry['average_blink_rate'] ?? null),
             'distance_display' => $this->formatDistance($telemetry['average_distance'] ?? null),
+            'opi_display' => $opiDisplay,
+            'diopters_display' => $diopters === null ? '--' : number_format((float) $diopters, 2) . ' D',
             'target_days_display' => '--',
             'low_blink_events' => $telemetry['low_blink_events'] ?? 0,
             'distance_violations' => $telemetry['distance_violations'] ?? 0,

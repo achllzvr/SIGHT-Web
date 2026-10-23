@@ -29,7 +29,7 @@
     <div class="guide">
         <strong>About this report.</strong>
         Data originates from the child’s LUMI mobile app. During Watch sessions, on-device face tracking estimates blink rate and viewing distance; the app curates short metric windows and the parent syncs them to LUMI.
-        Figures below summarize the <strong>rolling last 7 calendar days</strong>. This is contextual support for counseling on near-work habits—not a substitute for clinical examination or refraction.
+        Figures below summarize <strong>{{ $range_label ?? ($telemetry['range_label'] ?? 'Last 7 Days') }}</strong>. This is contextual support for counseling on near-work habits—not a substitute for clinical examination or refraction.
     </div>
 
     <h2>Summary</h2>
@@ -46,12 +46,12 @@
         <tr><th>Low Blink Days (&lt; 12 /min)</th><td>{{ $telemetry['low_blink_events'] ?? 0 }}</td></tr>
     </table>
     <p class="note">
-        <strong>Health grade bands:</strong> Excellent ≥90 · Good ≥80 · Fair ≥70 · Needs Attention &lt;70 (from latest/average health score).<br>
+        <strong>Health grade bands:</strong> Excellent ≥85 · Good 70–84 · Fair 50–69 · Needs Attention &lt;50 (from latest/average health score).<br>
         <strong>Violations / low-blink days:</strong> counts of days whose daily average fell below the threshold—not per-second episode counts.<br>
         <strong>Screen time:</strong> minutes of LUMI Watch tracking only (may under-represent total device use).
     </p>
 
-    <h2>7-Day Distance Trend (cm)</h2>
+    <h2>{{ $range_label ?? ($telemetry['range_label'] ?? 'Last 7 Days') }} Distance Trend (cm)</h2>
     <table>
         <thead>
             <tr>

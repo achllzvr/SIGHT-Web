@@ -12,12 +12,15 @@ class ChildInventory extends Model
 
     protected $fillable = [
         'child_id',
+        'item_key',
         'item_name',
+        'cost',
         'purchase_date',
     ];
 
     protected $casts = [
         'purchase_date' => 'datetime',
+        'cost' => 'integer',
     ];
 
     public function child()

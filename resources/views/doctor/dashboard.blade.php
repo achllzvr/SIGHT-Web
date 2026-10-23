@@ -503,10 +503,47 @@
                     @endif
                 </div>
                 <div class="session-banner__actions">
+                    <button class="btn btn-outline-primary btn-sm rounded-pill" type="button" data-bs-toggle="offcanvas" data-bs-target="#formulaGuidePanel" aria-controls="formulaGuidePanel">
+                        <i class="bi bi-journal-medical"></i> Formula &amp; Evidence Guide
+                    </button>
                     <a class="btn btn-outline-success btn-sm rounded-pill" href="{{ route('doctor.access.report', $sessionId) }}?range={{ $range ?? '7d' }}">
                         <i class="bi bi-filetype-pdf"></i> Export PDF
                     </a>
                     <button id="endVisitBtn" class="btn btn-outline-danger btn-sm rounded-pill">End Visit</button>
+                </div>
+            </div>
+
+            <div class="offcanvas offcanvas-end" tabindex="-1" id="formulaGuidePanel" aria-labelledby="formulaGuideLabel" style="width: 520px; max-width: 92vw;">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title" id="formulaGuideLabel"><i class="bi bi-journal-medical"></i> Formula &amp; Evidence Guide</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body small" style="line-height:1.55;">
+                    <p class="text-muted">How every LUMI number is computed, the variables behind it, and the clinical validation. Formulas were reviewed and validated by the study's partnered clinician, <strong>Dra. Leonor Macalintal-Almoro</strong> (licensed optometrist), against the cited literature.</p>
+
+                    <h6 class="mt-3">1. Viewing distance — Pinhole Camera / Triangle Similarity</h6>
+                    <p><code>d = k / faceWidthPx</code>, where calibration solves <code>k = 30 × Pref</code> at the 30&nbsp;cm reference. <em>Variables:</em> d = distance (cm), faceWidthPx = ML Kit face bounding-box width, k = per-device calibration constant. Empirically benchmarked against tape-measure ground truth at 10–60&nbsp;cm (MAE target ±5&nbsp;cm). 30&nbsp;cm safe = Harmon distance; &lt;30&nbsp;cm raises myopia odds ~2.5× (Ip et al. [57]; Wen et al. [60]).</p>
+
+                    <h6 class="mt-3">2. Accommodative demand — Optical Vergence</h6>
+                    <p><code>D = 100 / d</code> (diopters), hinge penalty <code>Pd = M1 · max(0, D − 3.33)</code>, M1 = 4.0. At 30&nbsp;cm D ≈ 3.33&nbsp;D; at 15&nbsp;cm D ≈ 6.67&nbsp;D (Bababekova et al. [58]; Long et al. [59]).</p>
+
+                    <h6 class="mt-3">3. Blink detection — Schmitt Trigger Hysteresis FSM</h6>
+                    <p>Eye-open probability ≤0.50 = closed, ≥0.60 = open; a blink counts on the closed→open rising edge (deadband prevents flicker double-counts) [66].</p>
+
+                    <h6 class="mt-3">4. Dry-eye risk — Ousler Ocular Protection Index (OPI)</h6>
+                    <p><code>IBI = 60 / B</code> (inter-blink interval, s), <code>OPI = TBUT / IBI</code> with stressed TBUT ≈ 6&nbsp;s, hinge <code>Pb = M2 · max(0, 10 − B)</code>, M2 = 4.0. Levels: 1 ≥12/min (OPI ≥1.20) Safe · 2 10–11 (1.00–1.19) Mild · 3 6–9 (0.60–0.99) Danger of tear-film evaporation · 4 &lt;6 (&lt;0.60) Critical (Ousler et al. [63]; TFOS DEWS II [64][65]).</p>
+
+                    <h6 class="mt-3">5. Eye Health Score — MAUT bounded integrator</h6>
+                    <p>HP (0–100) updated each 60&nbsp;s epoch: HP − (Pd + Pb + face-loss decay) + recovery (+10 HP 20-20-20 break, +5 HP blink test), clamped 0–100. Grade bands: Excellent ≥85 · Good 70–84 · Fair 50–69 · Needs Attention &lt;50.</p>
+
+                    <h6 class="mt-3">6. Stars — Fixed-Interval Token Economy</h6>
+                    <p>+1 Star per clean 60&nbsp;s epoch (no HP loss), bonus for ending inside the 2-minute wrap-up window; Stars halt when usage tier ≥3.</p>
+
+                    <h6 class="mt-3">7. Age-based limits &amp; usage tiers</h6>
+                    <p>Age max: 3–5 → 60&nbsp;min, 6–8 → 90, 9–12+ → 120 (WHO/AAP/Myopia Profile Two-Hour Rule; Ha et al. dose-response, OR 1.21 per extra hour). Usage tiers vs age max: ≤50% Optimal · 51–100% Within limit · 101–125% Mild over · 126–150% High · &gt;150% Critical.</p>
+
+                    <h6 class="mt-3">8. Trend alerts (selected range)</h6>
+                    <p>Dual-track SAFE / CAUTION / AT_RISK / CRITICAL: myopia track (mean distance + screen time vs age max + % days &lt;30&nbsp;cm) and dry-eye track (mean blink + OPI); overall = worse of the two. Screening aid only — not a diagnosis.</p>
                 </div>
             </div>
 
@@ -548,52 +585,66 @@
             <div class="kpi-grid">
                 <div class="kpi-span-3">
                     <div class="panel kpi-card">
-                        <div class="kpi-label">Health Grade</div>
-                        <div class="kpi-value">{{ $dashboardData['health_grade'] }}</div>
-                        <p class="kpi-hint">Label from the latest health score: Excellent ≥90 · Good ≥80 · Fair ≥70 · Needs Attention &lt;70.</p>
+                        <div class="kpi-label">Health Grade <i class="bi bi-info-circle text-muted" tabindex="0" data-bs-toggle="tooltip" data-bs-trigger="hover focus" title="Grade bands: Excellent ≥85 · Good 70–84 · Fair 50–69 · Needs Attention <50. Tap Formula & Evidence Guide for details."></i></div>
+                        <div class="kpi-value" id="kpiHealthGrade">{{ $dashboardData['health_grade'] }}</div>
+                        <p class="kpi-hint">Label from the health score over {{ $dashboardData['range_label'] ?? 'the selected range' }}: Excellent ≥85 · Good 70–84 · Fair 50–69 · Needs Attention &lt;50.</p>
                     </div>
                 </div>
                 <div class="kpi-span-3">
                     <div class="panel kpi-card">
-                        <div class="kpi-label">Health Score</div>
-                        <div class="kpi-value">{{ $dashboardData['health_score_display'] }}</div>
+                        <div class="kpi-label">Health Score <i class="bi bi-info-circle text-muted" tabindex="0" data-bs-toggle="tooltip" data-bs-trigger="hover focus" title="0–100 MAUT score: drops with close viewing / few blinks, recovers after breaks. See Formula Guide #5."></i></div>
+                        <div class="kpi-value" id="kpiHealthScore">{{ $dashboardData['health_score_display'] }}</div>
                         <p class="kpi-hint">0–100 score from the app. Drops when viewing is too close or blinks are too few; recovers after healthy breaks/exercises.</p>
                     </div>
                 </div>
                 <div class="kpi-span-3">
                     <div class="panel kpi-card">
-                        <div class="kpi-label">Avg Distance</div>
-                        <div class="kpi-value">{{ $dashboardData['distance_display'] }}</div>
+                        <div class="kpi-label">Avg Distance <i class="bi bi-info-circle text-muted" tabindex="0" data-bs-toggle="tooltip" data-bs-trigger="hover focus" title="Pinhole estimate d = k / faceWidthPx. 30 cm (Harmon distance) or farther is the comfy zone. See Formula Guide #1."></i></div>
+                        <div class="kpi-value" id="kpiDistance">{{ $dashboardData['distance_display'] }}</div>
                         <p class="kpi-hint">Mean viewing distance across days with data. Target habit: keep screens at about <strong>30 cm or farther</strong>.</p>
                     </div>
                 </div>
                 <div class="kpi-span-3">
                     <div class="panel kpi-card">
                         <div class="kpi-label">&lt; 30 cm Violations</div>
-                        <div class="kpi-value {{ ($dashboardData['distance_violations'] ?? 0) > 0 ? 'text-warning' : '' }}">{{ $dashboardData['distance_violations'] }}</div>
+                        <div class="kpi-value {{ ($dashboardData['distance_violations'] ?? 0) > 0 ? 'text-warning' : '' }}" id="kpiDistanceViolations">{{ $dashboardData['distance_violations'] }}</div>
                         <p class="kpi-hint">Number of days in {{ $dashboardData['range_label'] ?? 'this window' }} whose <em>daily average</em> distance fell below 30 cm (near-work risk days).</p>
                     </div>
                 </div>
                 @if($hasTelemetry)
-                <div class="kpi-span-4">
+                <div class="kpi-span-3">
                     <div class="panel kpi-card">
-                        <div class="kpi-label">Avg Blink Rate</div>
-                        <div class="kpi-value">{{ $dashboardData['blink_rate_display'] }}</div>
+                        <div class="kpi-label">Avg Blink Rate <i class="bi bi-info-circle text-muted" tabindex="0" data-bs-toggle="tooltip" data-bs-trigger="hover focus" title="Schmitt FSM blink count per minute. Below 12/min daily avg flags dry-eye risk. See Formula Guide #3–4."></i></div>
+                        <div class="kpi-value" id="kpiBlinkRate">{{ $dashboardData['blink_rate_display'] }}</div>
                         <p class="kpi-hint">Daily averages, then mean across days with data. Low blink rates (&lt;12/min in daily avg) are flagged as dry-eye / concentration risk.</p>
                     </div>
                 </div>
-                <div class="kpi-span-4">
+                <div class="kpi-span-3">
                     <div class="panel kpi-card">
-                        <div class="kpi-label">Avg Screen Time</div>
-                        <div class="kpi-value">{{ $dashboardData['screen_time_display'] }}</div>
-                        <p class="kpi-hint">Minutes of active Watch tracking per day (averaged). Reflects supervised play/use tracked by LUMI—not all device use.</p>
+                        <div class="kpi-label">Ocular Protection Index <i class="bi bi-info-circle text-muted" tabindex="0" data-bs-toggle="tooltip" data-bs-trigger="hover focus" title="OPI = TBUT / IBI (TBUT≈6s, IBI=60/blink rate). ≥1.20 Level 1 safe; <0.60 Level 4 critical. See Formula Guide #4."></i></div>
+                        <div class="kpi-value" id="kpiOpi">{{ $dashboardData['opi_display'] ?? '--' }}</div>
+                        <p class="kpi-hint">Ousler OPI with tear-film risk level for {{ $dashboardData['range_label'] ?? 'the selected range' }}.</p>
                     </div>
                 </div>
-                <div class="kpi-span-4">
+                <div class="kpi-span-3">
+                    <div class="panel kpi-card">
+                        <div class="kpi-label">Accommodative Demand <i class="bi bi-info-circle text-muted" tabindex="0" data-bs-toggle="tooltip" data-bs-trigger="hover focus" title="D = 100 / distance(cm). 30 cm ≈ 3.33 D; 15 cm ≈ 6.67 D. See Formula Guide #2."></i></div>
+                        <div class="kpi-value" id="kpiDiopters">{{ $dashboardData['diopters_display'] ?? '--' }}</div>
+                        <p class="kpi-hint">Mean optical vergence demand at the average viewing distance.</p>
+                    </div>
+                </div>
+                <div class="kpi-span-3">
+                    <div class="panel kpi-card">
+                        <div class="kpi-label">Avg Screen Time</div>
+                        <div class="kpi-value" id="kpiScreenTime">{{ $dashboardData['screen_time_display'] }}</div>
+                        <p class="kpi-hint">Minutes of active Watch tracking per day (averaged) over {{ $dashboardData['range_label'] ?? 'the selected range' }}. Reflects supervised play/use tracked by LUMI—not all device use.</p>
+                    </div>
+                </div>
+                <div class="kpi-span-3">
                     <div class="panel kpi-card">
                         <div class="kpi-label">Low Blink Days</div>
-                        <div class="kpi-value">{{ $dashboardData['low_blink_events'] }}</div>
-                        <p class="kpi-hint">Days whose average blink rate was below 12 blinks/min. Useful when discussing blink exercises and break habits.</p>
+                        <div class="kpi-value" id="kpiLowBlink">{{ $dashboardData['low_blink_events'] }}</div>
+                        <p class="kpi-hint">Days whose average blink rate was below 12 blinks/min in {{ $dashboardData['range_label'] ?? 'the selected range' }}. Useful when discussing blink exercises and break habits.</p>
                     </div>
                 </div>
                 @endif
@@ -661,7 +712,7 @@
                                             <li><strong>Viewing distance.</strong> Estimated face-to-device distance in centimeters. The portal treats &lt; 30 cm as the harmful near-work zone (≈ &gt; 3.3 D accommodative demand).</li>
                                             <li><strong>Strain events.</strong> Count of close-range distance samples inside each metric window (threshold 30 cm), summed per day—not a medical diagnosis of “eye strain.”</li>
                                             <li><strong>Screen time.</strong> Minutes of LUMI Watch tracking only. It under-represents total screen exposure outside the app.</li>
-                                            <li><strong>Health score &amp; grade.</strong> App-side behavioral score (0–100) summarizing distance + blink compliance, with recovery from healthy breaks. Grade bands: Excellent ≥90, Good ≥80, Fair ≥70, Needs Attention &lt;70.</li>
+                                            <li><strong>Health score &amp; grade.</strong> App-side behavioral score (0–100) summarizing distance + blink compliance, with recovery from healthy breaks. Grade bands: Excellent ≥85, Good 70–84, Fair 50–69, Needs Attention &lt;50.</li>
                                             <li><strong>Violations / low-blink days.</strong> Counts of days whose <em>daily average</em> distance &lt; 30 cm or blink rate &lt; 12/min—quick flags for counseling, not per-second episode counts.</li>
                                             <li><strong>Limitations.</strong> Accuracy depends on camera angle, lighting, calibration, and parent sync frequency. Prefer trends and counseling context over single-day extremes.</li>
                                         </ul>
@@ -1126,6 +1177,7 @@ if (hasSession && sessionId) {
     }, 5000);
 }
 
+window.__lumiCharts = {};
 if (hasSession && hasTelemetry && dash?.has_data) {
     const labels = dash.labels || [];
     const harmful = dash.harmful_distance_cm || 30;
@@ -1136,7 +1188,7 @@ if (hasSession && hasTelemetry && dash?.has_data) {
         labels: { boxWidth: 12, boxHeight: 12, padding: 14, usePointStyle: true },
     };
 
-    new Chart(document.getElementById('complianceChart'), {
+    window.__lumiCharts.compliance = new Chart(document.getElementById('complianceChart'), {
         type: 'line',
         data: {
             labels,
@@ -1157,7 +1209,7 @@ if (hasSession && hasTelemetry && dash?.has_data) {
         },
     });
 
-    new Chart(document.getElementById('screenTimeChart'), {
+    window.__lumiCharts.screenTime = new Chart(document.getElementById('screenTimeChart'), {
         type: 'bar',
         data: {
             labels,
@@ -1173,7 +1225,7 @@ if (hasSession && hasTelemetry && dash?.has_data) {
         },
     });
 
-    new Chart(document.getElementById('healthScoreChart'), {
+    window.__lumiCharts.healthScore = new Chart(document.getElementById('healthScoreChart'), {
         type: 'line',
         data: {
             labels,
@@ -1207,11 +1259,14 @@ if (hasSession && hasTelemetry && dash?.has_data) {
     });
 })();
 
+document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
 (function liveTelemetryPoll() {
     const sessionId = @json($sessionId);
     if (!sessionId) return;
     const rangeEl = document.getElementById('telemetryRange');
     const badge = document.getElementById('childPresenceBadge');
+    const fmt = (v, suffix = '') => (v === null || v === undefined ? '--' : v + suffix);
+    const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
     const poll = () => {
         if (document.visibilityState !== 'visible') return;
         const range = rangeEl ? rangeEl.value : '7d';
@@ -1219,10 +1274,44 @@ if (hasSession && hasTelemetry && dash?.has_data) {
             headers: { 'Accept': 'application/json' },
             credentials: 'same-origin',
         }).then(r => r.json()).then(body => {
-            const presence = body?.data?.telemetry?.presence;
+            const t = body?.data?.telemetry;
+            const presence = t?.presence;
             if (badge && presence?.presence_label) {
                 badge.textContent = 'Device: ' + presence.presence_label;
                 badge.className = 'badge rounded-pill ' + (presence.presence_status === 'online' ? 'text-bg-success' : 'text-bg-secondary');
+            }
+            if (!t) return;
+            // Live KPIs (no manual refresh)
+            setText('kpiHealthGrade', t.health_grade ?? '--');
+            setText('kpiHealthScore', t.health_score === null || t.health_score === undefined ? '--' : t.health_score + '%');
+            setText('kpiDistance', t.average_distance === null || t.average_distance === undefined ? '--' : t.average_distance + ' cm');
+            setText('kpiDistanceViolations', String(t.distance_violations ?? 0));
+            setText('kpiBlinkRate', t.average_blink_rate === null || t.average_blink_rate === undefined ? '--' : t.average_blink_rate + ' /min');
+            setText('kpiScreenTime', t.average_screen_time === null || t.average_screen_time === undefined ? '--' : Math.round(t.average_screen_time) + ' min');
+            setText('kpiLowBlink', String(t.low_blink_events ?? 0));
+            const opi = t.ocular_protection_index;
+            setText('kpiOpi', opi && opi.opi !== null && opi.opi !== undefined ? Number(opi.opi).toFixed(2) + ' · Level ' + (opi.level ?? '—') : '--');
+            setText('kpiDiopters', t.mean_diopters === null || t.mean_diopters === undefined ? '--' : Number(t.mean_diopters).toFixed(2) + ' D');
+            // Live charts
+            const charts = window.__lumiCharts || {};
+            const labels = t.labels || [];
+            if (charts.compliance) {
+                charts.compliance.data.labels = labels;
+                charts.compliance.data.datasets[0].data = t.blink_rates || [];
+                charts.compliance.data.datasets[1].data = t.distances || [];
+                if (charts.compliance.data.datasets[2]) charts.compliance.data.datasets[2].data = labels.map(() => t.harmful_distance_cm || 30);
+                charts.compliance.update();
+            }
+            if (charts.screenTime) {
+                charts.screenTime.data.labels = labels;
+                charts.screenTime.data.datasets[0].data = t.screen_times || [];
+                if (charts.screenTime.data.datasets[1]) charts.screenTime.data.datasets[1].data = t.strain_events || [];
+                charts.screenTime.update();
+            }
+            if (charts.healthScore) {
+                charts.healthScore.data.labels = labels;
+                charts.healthScore.data.datasets[0].data = t.health_scores || [];
+                charts.healthScore.update();
             }
         }).catch(() => {});
     };

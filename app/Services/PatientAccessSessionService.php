@@ -267,6 +267,7 @@ class PatientAccessSessionService
             'average_blink_rate' => $dashboard['mean_blink_rate'],
             'average_distance' => $dashboard['mean_distance_cm'],
             'average_screen_time' => $dashboard['mean_screen_time_minutes'],
+            'mean_diopters' => $dashboard['mean_diopters'] ?? null,
             'distance_violations' => (int) ($dashboard['distance_violations'] ?? 0),
             'low_blink_events' => (int) ($dashboard['low_blink_events'] ?? 0),
             'labels' => $series['labels'] ?? [],

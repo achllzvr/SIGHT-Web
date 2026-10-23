@@ -67,10 +67,10 @@
                 $alert = $hasData ? ($dashboard['clinical_trend_alert'] ?? null) : null;
             @endphp
             <div class="row g-3 mb-3">
-                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Health Grade</div><div class="fs-4 fw-bold">{{ $hasData ? ($dashboard['health_grade'] ?? '—') : 'No Data' }}</div></div></div>
-                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Avg Distance</div><div class="fs-4 fw-bold">{{ $hasData && $dashboard['mean_distance_cm'] !== null ? $dashboard['mean_distance_cm'].' cm' : '—' }}</div></div></div>
-                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Avg Blink</div><div class="fs-4 fw-bold">{{ $hasData && $dashboard['mean_blink_rate'] !== null ? $dashboard['mean_blink_rate'].'/min' : '—' }}</div></div></div>
-                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Avg Screen Time</div><div class="fs-4 fw-bold">{{ $hasData && $dashboard['mean_screen_time_minutes'] !== null ? $dashboard['mean_screen_time_minutes'].' min' : '—' }}</div></div></div>
+                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Health Grade <span title="How well eyes are doing in {{ $dashboard['range_label'] ?? 'this range' }}. Ask your eye doctor if you are unsure." style="cursor:help;">&#9432;</span></div><div class="fs-4 fw-bold" id="kpiHealthGrade">{{ $hasData ? ($dashboard['health_grade'] ?? '—') : 'No Data' }}</div><div class="text-muted small" id="kpiRangeLabel">{{ $dashboard['range_label'] ?? '' }}</div></div></div>
+                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Avg Distance <span title="About an arm's length (30 cm or more) is comfy for eyes." style="cursor:help;">&#9432;</span></div><div class="fs-4 fw-bold" id="kpiDistance">{{ $hasData && $dashboard['mean_distance_cm'] !== null ? $dashboard['mean_distance_cm'].' cm' : '—' }}</div></div></div>
+                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Avg Blink <span title="Blinking keeps eyes moist. Fewer blinks can make eyes feel dry." style="cursor:help;">&#9432;</span></div><div class="fs-4 fw-bold" id="kpiBlink">{{ $hasData && $dashboard['mean_blink_rate'] !== null ? $dashboard['mean_blink_rate'].'/min' : '—' }}</div></div></div>
+                <div class="col-md-3"><div class="card-soft"><div class="text-muted small">Avg Screen Time</div><div class="fs-4 fw-bold" id="kpiScreen">{{ $hasData && $dashboard['mean_screen_time_minutes'] !== null ? $dashboard['mean_screen_time_minutes'].' min' : '—' }}</div></div></div>
             </div>
 
             @php
@@ -109,7 +109,7 @@
                 @endif
                 @if($hasData && !empty($dashboard['usage_threshold']))
                     <hr>
-                    <p class="mb-0"><strong>Screen time:</strong> {{ $dashboard['usage_threshold']['badge'] ?? '' }} — {{ $dashboard['usage_threshold']['label'] ?? '' }}</p>
+                    <p class="mb-0" id="usageLine"><strong>Screen time:</strong> {{ $dashboard['usage_threshold']['badge'] ?? '' }} — {{ $dashboard['usage_threshold']['label'] ?? '' }}</p>
                 @endif
             </div>
         @endif
@@ -142,17 +142,29 @@
     const childId = @json($selected->child_id);
     const range = @json($range);
     const badge = document.getElementById('presenceBadge');
+    const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
     const poll = () => {
         if (document.visibilityState !== 'visible') return;
         fetch(@json(route('guardian.poll')) + '?child_id=' + childId + '&range=' + encodeURIComponent(range), {
             headers: { 'Accept': 'application/json' },
             credentials: 'same-origin',
         }).then(r => r.json()).then(body => {
-            const p = body?.data?.presence;
+            const d = body?.data || {};
+            const p = d.presence;
             if (badge && p?.presence_label) {
                 badge.textContent = 'Device: ' + p.presence_label;
                 badge.className = 'badge rounded-pill text-bg-' + (p.presence_status === 'online' ? 'success' : 'secondary');
             }
+            if (d.has_data) {
+                setText('kpiHealthGrade', d.health_grade ?? '—');
+                setText('kpiDistance', d.mean_distance_cm != null ? d.mean_distance_cm + ' cm' : '—');
+                setText('kpiBlink', d.mean_blink_rate != null ? d.mean_blink_rate + '/min' : '—');
+                setText('kpiScreen', d.mean_screen_time_minutes != null ? d.mean_screen_time_minutes + ' min' : '—');
+            }
+            if (d.range_label) setText('kpiRangeLabel', d.range_label);
+            const usage = d.usage_threshold;
+            const usageEl = document.getElementById('usageLine');
+            if (usageEl && usage && d.has_data) usageEl.innerHTML = '<strong>Screen time:</strong> ' + (usage.badge ?? '') + ' — ' + (usage.label ?? '');
         }).catch(() => {});
     };
     poll();

@@ -52,6 +52,7 @@ trait SightTestSchema
             $table->string('login_code', 50)->nullable();
             $table->text('calibration_baseline')->nullable();
             $table->string('fcm_token')->nullable();
+            $table->string('equipped_skin_key')->default('skin_frog_green');
             $table->timestamp('updated_at')->nullable();
         });
 
@@ -82,6 +83,16 @@ trait SightTestSchema
             $table->timestamp('last_used_at')->nullable();
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
+        });
+
+        Schema::create('child_inventory', function (Blueprint $table) {
+            $table->integer('inventory_id', true);
+            $table->integer('child_id');
+            $table->string('item_key');
+            $table->string('item_name')->nullable();
+            $table->unsignedInteger('cost')->default(0);
+            $table->dateTime('purchase_date')->nullable();
+            $table->unique(['child_id', 'item_key']);
         });
 
         Schema::create('email_verification_otps', function (Blueprint $table) {

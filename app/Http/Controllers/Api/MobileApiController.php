@@ -173,8 +173,9 @@ class MobileApiController extends Controller
      */
     public function syncSessionLimits(Request $request, $child_id)
     {
+        // Server clamps to the child's age tier (60/90/120) in MetricsService.
         $request->validate([
-            'daily_limit_minutes' => 'nullable|integer|min:1|max:1440',
+            'daily_limit_minutes' => 'nullable|integer|min:1|max:120',
             'mode' => 'nullable|in:Strict,Relaxed',
             'harmful_distance_threshold' => 'nullable|numeric|min:1|max:100',
             'critical_distance_threshold' => 'nullable|numeric|min:1|max:100',
@@ -188,6 +189,37 @@ class MobileApiController extends Controller
             $request->all()
         );
 
+        return response()->json($result['body'], $result['http_code']);
+    }
+
+    /** GET /api/mobile/child/{child_id}/inventory */
+    public function getInventory($child_id)
+    {
+        $result = $this->metricsService->getInventory((int) $child_id, (int) Auth::id());
+        return response()->json($result['body'], $result['http_code']);
+    }
+
+    /** POST /api/mobile/child/{child_id}/inventory/purchase */
+    public function purchaseInventoryItem(Request $request, $child_id)
+    {
+        $request->validate(['item_key' => 'required|string']);
+        $result = $this->metricsService->purchaseInventoryItem(
+            (int) $child_id,
+            (int) Auth::id(),
+            $request->string('item_key')->toString()
+        );
+        return response()->json($result['body'], $result['http_code']);
+    }
+
+    /** PUT /api/mobile/child/{child_id}/inventory/equip */
+    public function equipInventoryItem(Request $request, $child_id)
+    {
+        $request->validate(['item_key' => 'required|string']);
+        $result = $this->metricsService->equipInventoryItem(
+            (int) $child_id,
+            (int) Auth::id(),
+            $request->string('item_key')->toString()
+        );
         return response()->json($result['body'], $result['http_code']);
     }
 

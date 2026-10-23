@@ -110,8 +110,8 @@ class EmailVerificationOtpService
      */
     private function successWithMobileToken(User $user, string $message): array
     {
-        $user->tokens()->where('name', 'guardian-mobile')->delete();
-        $token = $user->createToken('guardian-mobile')->plainTextToken;
+        // Per-device token — never revoke other devices on OTP verification.
+        $token = $user->createToken('guardian-mobile:otp-' . \Illuminate\Support\Str::random(12))->plainTextToken;
 
         return [
             'http_code' => 200,
